@@ -1,0 +1,25 @@
+# Standalone, not a member of the root workspace — same anchoring as cpal-patched-0.18.
+# It is consumed purely through [patch.crates-io] in the root manifest.
+[workspace]
+
+[package]
+name        = "audiopus_sys"
+version     = "0.2.2"
+license     = "ISC"
+edition     = "2018"
+description = "FFI bindings to libopus 1.6.1, vendored and built from source with cc only."
+links       = "opus"
+
+# No pkg-config, no cmake, no bindgen. `cc` is the only build dependency, which is
+# the whole point of this crate — see README.md.
+[build-dependencies]
+cc = "1"
+
+# Kept so anything that referenced audiopus_sys's feature flags still resolves. They
+# are deliberately inert here: this crate ALWAYS builds the vendored 1.6.1 source and
+# ALWAYS links it statically. There is no dynamic or system-libopus path to select.
+[features]
+default = []
+dynamic = []
+static = []
+generate_binding = []

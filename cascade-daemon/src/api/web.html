@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cascade</title>
+<style>
+/* ── Theme ─────────────────────────────────────────────────────────────── */
+:root{
+  --bg:#0e1116; --sf:#151a21; --sf2:#1c222b; --line:#2a323d; --line2:#39434f;
+  --ink:#e7ecf2; --muted:#8d97a5; --accent:#4da3ff; --accent-ink:#0b2745;
+  --good:#3dc97e; --warn:#e0a73c; --bad:#e06060;
+  --hl:rgba(77,163,255,.09);
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f5f7; --sf:#ffffff; --sf2:#eef1f5; --line:#d8dee6; --line2:#c3ccd6;
+    --ink:#1d242d; --muted:#5e6975; --accent:#1f7ae0; --accent-ink:#ffffff;
+    --good:#1f9e5e; --warn:#b07e1c; --bad:#c84848;
+    --hl:rgba(31,122,224,.08);
+    --shadow:0 1px 3px rgba(20,30,40,.08);
+  }
+}
+html[data-theme="dark"]{
+  --bg:#0e1116; --sf:#151a21; --sf2:#1c222b; --line:#2a323d; --line2:#39434f;
+  --ink:#e7ecf2; --muted:#8d97a5; --accent:#4da3ff; --accent-ink:#0b2745;
+  --good:#3dc97e; --warn:#e0a73c; --bad:#e06060;
+  --hl:rgba(77,163,255,.09);
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+html[data-theme="light"]{
+  --bg:#f3f5f7; --sf:#ffffff; --sf2:#eef1f5; --line:#d8dee6; --line2:#c3ccd6;
+  --ink:#1d242d; --muted:#5e6975; --accent:#1f7ae0; --accent-ink:#ffffff;
+  --good:#1f9e5e; --warn:#b07e1c; --bad:#c84848;
+  --hl:rgba(31,122,224,.08);
+  --shadow:0 1px 3px rgba(20,30,40,.08);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+h2{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink)}
+a{color:var(--accent)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;color:var(--ink);background:var(--sf2);
+  border:1px solid var(--line);border-radius:6px;padding:6px 8px;outline:none;
+  height:32px}
+input:focus,select:focus{border-color:var(--accent)}
+input::placeholder{color:var(--muted)}
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+.field{display:flex;flex-direction:column;min-width:0}
+
+/* ── Top bar ───────────────────────────────────────────────────────────── */
+.top{display:flex;align-items:center;gap:14px;padding:10px 18px;
+  border-bottom:1px solid var(--line);background:var(--sf)}
+.brand{font-size:15px;font-weight:700;letter-spacing:.4px}
+.brand small{font-weight:400;color:var(--muted);margin-left:8px;font-size:12px}
+.tabs{display:flex;gap:4px;margin-left:10px}
+.tab{padding:5px 13px;border-radius:6px;font-size:12px;font-weight:500;
+  border:1px solid transparent;background:transparent;color:var(--muted)}
+.tab:hover{color:var(--ink);background:var(--sf2)}
+.tab.on{background:var(--sf2);color:var(--ink);border-color:var(--line)}
+.spacer{flex:1}
+.onair{font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;
+  border-radius:5px;border:1px solid var(--line);color:var(--muted);background:transparent}
+.onair.live{background:var(--bad);border-color:var(--bad);color:#fff}
+.portconflict{font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;
+  border-radius:5px;background:var(--bad);color:#fff;white-space:nowrap}
+.themebtn{font-size:11px;padding:4px 10px;border-radius:6px;
+  border:1px solid var(--line);background:var(--sf2);color:var(--muted)}
+.themebtn:hover{color:var(--ink)}
+.conn{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.conn.ok{background:var(--good)}
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+.page{display:none;padding:18px;max-width:1100px;margin:0 auto}
+.page.on{display:block}
+.card{background:var(--sf);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:10px 14px}
+.grid>*{min-width:0}
+.field select,.field input{width:100%}
+.grid.c2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.grid.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){.grid.c2,.grid.c3,.grid.c4{grid-template-columns:1fr}}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;font-variant-numeric:tabular-nums}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--line);
+  background:var(--sf2);font-size:12px;font-weight:500}
+.btn:hover{border-color:var(--line2)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger{color:var(--bad)}
+.btn.danger:hover{border-color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.btn.tgl{min-width:74px;text-align:center}
+.btn.tgl.on{background:var(--good);border-color:var(--good);color:#fff;font-weight:600}
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+table.list{width:100%;border-collapse:collapse}
+table.list th{font-size:11px;font-weight:600;color:var(--muted);text-align:left;
+  padding:6px 10px;border-bottom:1px solid var(--line)}
+table.list td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle;
+  white-space:nowrap}
+table.list tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;
+  background:var(--sf2);color:var(--muted);border:1px solid var(--line)}
+.pill.ok{color:var(--good);border-color:var(--good)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.pill.bad{color:var(--bad);border-color:var(--bad)}
+/* Square orange badge (white text) shown after a remote's name when that remote is
+   advertising a 44.1k incoming sample rate. Square corners + filled orange to read as a
+   warning marker, distinct from the rounded status pills. */
+.sr-badge{display:inline-block;margin-left:7px;font-size:10px;font-weight:700;
+  padding:1px 5px;border-radius:2px;background:var(--warn);color:#fff;
+  vertical-align:middle;letter-spacing:0.2px}
+/* Configured (matrix) TX/RX route counts, shown small + light beside the remote name.
+   Persistent — independent of connection/audio state. */
+.cfg-rt{margin-left:8px;font-size:10px;color:var(--muted);vertical-align:middle;font-weight:400}
+
+/* ── Matrix ────────────────────────────────────────────────────────────── */
+.mxwrap{overflow:auto;padding-bottom:6px;max-height:72vh}
+table.mx{border-collapse:separate;border-spacing:3px 1px}
+table.mx th{font-size:10px;font-weight:500;color:var(--muted);padding:2px 4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+table.mx th.col{height:84px;vertical-align:bottom;max-width:30px;width:30px;
+  padding:0 4px 3px 4px;
+  position:sticky;top:0;background:var(--sf);z-index:3}
+/* Vertical header text: a FIXED max-height so a long label truncates with an ellipsis
+   instead of growing the column (which made the whole grid "breathe"). The height budget
+   (~76px) roughly matches the left row-label's horizontal text width, so both sides cap
+   at a similar character count. */
+table.mx th.col .v{writing-mode:vertical-rl;transform:rotate(180deg);
+  display:inline-block;white-space:nowrap;line-height:1;
+  max-height:76px;overflow:hidden;text-overflow:ellipsis}
+table.mx th.rowl{padding:1px 6px 1px 5px;
+  width:190px;min-width:190px;max-width:190px;
+  position:sticky;left:0;background:var(--sf);z-index:2}
+table.mx th.corner{position:sticky;top:0;left:0;background:var(--sf);z-index:4}
+table.mx th.hl{color:var(--accent);font-weight:700}
+table.mx th.rowl input{height:22px;padding:2px 6px;font-size:11px;flex:1 1 auto;min-width:0;width:auto}
+.rl-w{display:flex;align-items:center;gap:7px;width:100%}
+.rl-n{flex:0 0 18px;text-align:right;color:var(--muted);font-size:10px;line-height:1;
+  font-variant-numeric:tabular-nums}
+/* Level meter — styled to match the buffer bar (rounded, --sf2 track, --line border). */
+.rl-m{flex:0 0 64px;height:8px;border:1px solid var(--line);border-radius:4px;
+  overflow:hidden;background:var(--sf2);position:relative}
+.rl-m i{position:absolute;inset:0;width:100%;
+  background:linear-gradient(90deg,
+    var(--good) 0%, var(--good) 50%,    /* ≤ −18 dBFS */
+    var(--warn) 50%, var(--warn) 72%,   /* −18 … −10  */
+    var(--bad)  72%);                    /* > −10      */
+  clip-path:inset(0 100% 0 0);transition:clip-path .05s linear}
+.rl-m b{position:absolute;top:0;bottom:0;left:0;width:1px;background:rgba(255,255,255,.85);
+  opacity:0;transition:left .05s linear}
+@media (prefers-color-scheme: light){ .rl-m b{background:rgba(40,48,60,.65)} }
+html[data-theme="light"] .rl-m b{background:rgba(40,48,60,.65)}
+html[data-theme="dark"]  .rl-m b{background:rgba(255,255,255,.85)}
+.rl-t{flex:1 1 auto;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rl-t.ph{color:var(--muted)}
+.xp{width:26px;height:26px;border-radius:5px;border:1px solid var(--line);
+  background:var(--sf2);padding:0}
+.xp:hover{border-color:var(--accent)}
+.xp.on{background:var(--accent);border-color:var(--accent)}
+.xp.hl{border-color:var(--accent)}
+.xp.hl:not(.on){background:var(--hl)}
+.peerbtns{display:flex;gap:6px;flex-wrap:wrap}
+.btn.sm{padding:5px 9px;font-size:12px}
+.btn.sel{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+tr.tonerow.first th, tr.tonerow.first td{padding-top:14px}
+.xp.tone.on{background:var(--bad);border-color:var(--bad)}
+/* Receive-buffer gauge */
+td.bufcell{white-space:nowrap}
+.bufg{display:inline-block;width:44px;height:8px;border:1px solid var(--line);
+  border-radius:4px;overflow:hidden;vertical-align:middle;background:var(--sf2)}
+.bufg i{display:block;height:100%;transition:width .4s ease}
+.bufg.ok i{background:var(--good)} .bufg.warn i{background:var(--warn)}
+.bufg.bad i{background:var(--bad)} .bufg.over i{background:var(--accent)}
+/* Prebuffer hold: striped, de-saturated — "filling, not playing", visually
+   distinct from any depth reading so it can't be mistaken for a level. */
+.bufg.hold i{background:repeating-linear-gradient(90deg,
+  var(--line2) 0 6px, transparent 6px 12px)}
+.bufms{font-size:11px;color:var(--muted);margin-left:6px;display:inline-block;vertical-align:middle}
+/* Connection-lost overlay: full blank page, theme-matched */
+.offline-ov{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;
+  background:var(--bg)}
+body.offline .offline-ov{display:flex}
+.offline-brand{display:flex;align-items:center;gap:11px;
+  font-size:22px;font-weight:700;letter-spacing:.4px;color:var(--ink)}
+.offline-msg{font-size:14px;color:var(--muted)}
+
+/* ── Save bar ──────────────────────────────────────────────────────────── */
+.savebar{position:sticky;bottom:0;display:none;align-items:center;gap:12px;
+  padding:10px 16px;margin-top:10px;background:var(--sf);border:1px solid var(--line);
+  border-radius:10px;box-shadow:var(--shadow)}
+.savebar.show{display:flex}
+.savebar .msg{font-size:12px;color:var(--muted)}
+.savebar .msg b{color:var(--warn)}
+/* A toggle showing a state the platform imposes rather than a choice: same appearance
+   as an active toggle, but visibly not interactive. */
+.locked{cursor:default;opacity:.72}
+.banner{display:none;padding:9px 18px;border-bottom:1px solid var(--line);
+  font-size:12px;background:var(--sf2)}
+.banner.show{display:block}
+
+/* ── Remotes editor ────────────────────────────────────────────────────── */
+/* A remote sits on its own soft band with a status accent stripe (green =
+   enabled, grey = disabled) so its two rows read as one unit. BOTH rows share
+   the same column grid, so every audio-row control lines up under its identity
+   counterpart: Mode↔Name, Frame↔Host, Buffer↔Port, an empty gap under Password,
+   then Phase lock / Encryption under Enabled / Remove. */
+.remote{position:relative;background:var(--sf2);border-radius:8px;
+  padding:12px 14px 12px 18px;margin-bottom:12px;overflow:hidden}
+.remote:last-of-type{margin-bottom:0}
+.remote::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--good)}
+.remote.disabled::before{background:var(--line2)}
+.remote input,.remote select,.remote .btn{background:var(--sf)}
+.remote-row{display:grid;grid-template-columns:1.2fr 1.4fr .7fr 1fr 100px 100px;
+  gap:8px;align-items:end}
+.remote-row.audio{margin-top:8px}
+@media (max-width:860px){
+  .remote-row{grid-template-columns:1fr 1fr;align-items:end}
+  .remote-row .gap{display:none}
+}
+/* Feature toggles on the audio row: accent when engaged, so they read as
+   "capability on" and stay visually distinct from the green connection
+   Enable/Disable toggle directly above them. */
+.btn.tgl.feat.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* Encryption-active lock on the monitor: peer name gets a small accent lock once
+   the key exchange has completed and audio is genuinely sealed. */
+.enc-badge{margin-left:6px;font-size:11px;color:var(--accent);vertical-align:1px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand" style="display:flex;align-items:center;gap:8px">
+    <svg width="17" height="19" viewBox="0 0 17 19" fill="none" aria-hidden="true">
+      <polygon points="8.5,1 16,5 16,14 8.5,18 1,14 1,5"
+        style="stroke:var(--accent);fill:none" stroke-width="1.3"/>
+    </svg>
+    Cascade <small id="b-name"></small></div>
+  <div class="tabs">
+    <button class="tab on" data-p="monitor">Monitor</button>
+    <button class="tab" data-p="tx">TX Routing</button>
+    <button class="tab" data-p="rx">RX Routing</button>
+    <button class="tab" data-p="settings">Settings</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="portconflict" id="portconflict" style="display:none"></div>
+  <button class="onair" id="onair">ON AIR</button>
+  <button class="themebtn" id="themebtn">System</button>
+  <div class="conn" id="conn" title="Connection"></div>
+</div>
+
+<div class="banner" id="s-banner"></div>
+
+<!-- ── Monitor ──────────────────────────────────────────────────────────── -->
+<div class="page on" id="p-monitor">
+  <div class="card">
+    <h2>Instance</h2>
+    <dl class="kv" id="m-instance"></dl>
+  </div>
+  <div class="card">
+    <h2>Remotes</h2>
+    <table class="list" id="m-peers" style="table-layout:fixed;width:100%"><thead><tr>
+      <th>Name</th><th style="width:104px">State</th>
+      <th style="width:110px">TX</th><th style="width:110px">RX</th>
+      <th style="width:86px">Loss</th><th style="width:108px">Jitter</th>
+      <th style="width:100px">Latency</th><th style="width:132px">Buffer</th>
+    </tr></thead><tbody></tbody></table>
+    <div class="muted" id="m-nopeers" style="display:none;padding:8px 2px">No remotes configured.</div>
+  </div>
+</div>
+
+<!-- ── TX Routing ───────────────────────────────────────────────────────── -->
+<div class="page" id="p-tx">
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">TX Routing <span class="muted" id="tx-subtitle" style="font-weight:400">- input → network stream, one per slot</span></h2>
+      <div class="row">
+        <div class="peerbtns" id="tx-peer"></div>
+        <button class="btn sm" id="tx-clearlabels" title="Reset all channel labels to default">Clear labels</button>
+        <button class="btn sm" id="tx-fill" title="Fill diagonal 1:1">1:1</button>
+        <button class="btn sm" id="tx-clear" title="Clear all routing">Clear</button>
+      </div>
+    </div>
+    <div class="mxwrap" id="tx-mx"></div>
+    <div class="muted" id="tx-empty" style="display:none;padding:8px 2px">No enabled remotes.</div>
+  </div>
+</div>
+
+<!-- ── RX Routing ───────────────────────────────────────────────────────── -->
+<div class="page" id="p-rx">
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">RX Routing <span class="muted" id="rx-subtitle" style="font-weight:400">- network stream → output</span></h2>
+      <div class="row">
+        <div class="peerbtns" id="rx-peer"></div>
+        <button class="btn sm" id="rx-fill" title="Fill diagonal 1:1">1:1</button>
+        <button class="btn sm" id="rx-clear" title="Clear all routing">Clear</button>
+      </div>
+    </div>
+    <div class="mxwrap" id="rx-mx"></div>
+    <div class="muted" id="rx-empty" style="display:none;padding:8px 2px">No enabled remotes.</div>
+  </div>
+</div>
+
+<!-- ── Settings ─────────────────────────────────────────────────────────── -->
+<div class="page" id="p-settings">
+
+  <div class="card">
+    <h2>Identity &amp; Network</h2>
+    <div class="grid c4">
+      <div class="field"><label>Name</label><input id="f-name"></div>
+      <div class="field"><label>Port</label><input id="f-port" type="number" min="1" max="65535"></div>
+      <div class="field"><label>Web UI port</label><input id="f-apiport" type="number" min="1" max="65535"></div>
+      <div class="field"><label>Network interface</label><select id="f-iface"></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Audio</h2>
+    <!-- Devices + master bitrate only. Frame size and encoder mode are PER-REMOTE
+         (see the Remotes card below) — a single instance can feed remotes at
+         different frame sizes and modes simultaneously, so no global control for
+         them exists. Outgoing channel count is fixed at the protocol maximum
+         (128) and is not a user setting. -->
+    <div class="grid c4">
+      <div class="field"><label>Input device</label><select id="f-indev"></select></div>
+      <div class="field"><label>Output device</label><select id="f-outdev"></select></div>
+      <div class="field"><label>Bitrate</label>
+        <select id="f-bitrate">
+          <option value="0">Auto</option>
+          <option value="8">8 kbps</option><option value="16">16 kbps</option>
+          <option value="24">24 kbps</option><option value="32">32 kbps</option>
+          <option value="64">64 kbps</option><option value="96">96 kbps</option>
+          <option value="128">128 kbps</option><option value="192">192 kbps</option>
+          <option value="256">256 kbps</option><option value="320">320 kbps</option>
+        </select></div>
+      <div class="field"><label>Output access</label>
+        <button class="btn tgl feat" id="f-exclout">Exclusive</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:4px">
+      <h2 style="margin:0">Remotes</h2>
+      <button class="btn" id="f-addremote">Add remote</button>
+    </div>
+    <div id="f-remotes"></div>
+    <div class="muted" id="f-noremotes" style="display:none;padding:8px 2px">No remotes. Add one to start sending or receiving audio.</div>
+  </div>
+
+  <div class="savebar" id="savebar">
+    <span class="msg"><b>Unsaved changes</b></span>
+    <div class="spacer"></div>
+    <button class="btn" id="discard">Discard</button>
+    <button class="btn primary" id="save">Save</button>
+  </div>
+</div>
+
+<div class="offline-ov" id="offline-ov">
+  <div class="offline-brand">
+    <svg width="24" height="27" viewBox="0 0 17 19" fill="none" aria-hidden="true">
+      <polygon points="8.5,1 16,5 16,14 8.5,18 1,14 1,5"
+        style="stroke:var(--accent);fill:none" stroke-width="1.3"/>
+    </svg>
+    Cascade
+  </div>
+  <div class="offline-msg">Reconnecting</div>
+</div>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════════════════════
+   State
+   live   — truth from backend polling / WS push. Never edited.
+   draft  — deep copy of live.config taken on first Settings edit. null = clean.
+   ════════════════════════════════════════════════════════════════════════ */
+const live = {
+  config: null,           // /api/config
+  status: null,           // /api/status
+  channels: null,         // /api/channels
+  devices: {inputs:[],outputs:[]},
+  interfaces: [],
+};
+let draft = null;         // edited copy of config (Settings only)
+// Last-rendered structural state for routing pages. pollFast skips a full
+// re-render when nothing structural has changed, so the 25Hz meter updates
+// are not interrupted by a DOM teardown every 2s. Initialised to sentinel
+// values that never match real state, guaranteeing a render on first poll.
+let rxLastPeer=null, rxLastSrcs=-1, rxLastOuts=-1, rxLastLabelSig="", rxLastOutDev="";
+
+// Signature of the selected peer's incoming channel LABELS (not just the count).
+// channels_changed fires when a remote's label text changes while the active-channel
+// COUNT stays the same (placeholder "Ch N" → real name); the structure-only gate
+// skipped any update so names only appeared on a page refresh. We use this signature
+// to detect a label-only change and update the existing row labels IN PLACE (see
+// rxUpdateLabels) rather than calling renderRX(), which would rebuild the grid and
+// blink the 25Hz meters.
+function rxLabelSig(peer){
+  const arr = (live.channels && live.channels.incoming_by_peer && peer)
+    ? (live.channels.incoming_by_peer[peer]||[]) : [];
+  // Key on the DISPLAYED text (label or "Ch N" placeholder), not the raw label, so a
+  // remote that toggles an unnamed channel between "" and "Ch N" — which render
+  // identically — doesn't churn the signature and force needless re-renders.
+  return arr.map(c=>c.channel+":"+((c.label&&c.label.trim())||("Ch "+(c.channel+1)))).join("|");
+}
+
+// Surgically update the RX source-row labels WITHOUT rebuilding the grid, so the live
+// meters (sibling DOM in the same row) are not torn down. Mirrors renderRX's row
+// derivation (active sources, in order) and writes only the .rl-t text per row index.
+// Returns true if it updated in place; false if the grid isn't present (caller falls
+// back to a full renderRX). Only valid when the row STRUCTURE is unchanged — the caller
+// guarantees that (count + peer + outputs all matched; only label text differs).
+function rxUpdateLabels(peer){
+  const host=$("#rx-mx"); if(!host) return false;
+  const inc = (live.channels && live.channels.incoming_by_peer && live.channels.incoming_by_peer[peer]) || [];
+  const srcs = inc.filter(c=>c.active);
+  const cells = host.querySelectorAll("th.rowl");
+  if(cells.length !== srcs.length) return false;   // structure differs → full render
+  srcs.forEach((c,ri)=>{
+    const lbl = cells[ri] && cells[ri].querySelector("span.rl-t");
+    if(!lbl) return;
+    const shown = ((c.label && c.label.trim()) || ("Ch "+(c.channel+1)));
+    if(lbl.textContent !== shown){ lbl.textContent = shown; lbl.title = shown; }
+    // keep the placeholder styling in sync with whether a real label exists
+    if(c.label && c.label.trim()) lbl.classList.remove("ph"); else lbl.classList.add("ph");
+  });
+  // The top-row (output column) headers inherit the routed source's label too, so a
+  // rename must refresh them as well — otherwise the left axis updates here but the top
+  // row keeps the stale inherited label until a full rebuild (navigate away/back or a
+  // crosspoint toggle). Repaint them in place from the same live data, no grid teardown.
+  rxRepaintHeadersFor(peer);
+  return true;
+}
+// Repaint the RX top-row (output column) header labels IN PLACE from live config +
+// channel data, mirroring renderRX's rxColLabel derivation. Standalone (not a renderRX
+// closure) so the surgical label-refresh path can reach it without a full rebuild.
+function rxRepaintHeadersFor(peer){
+  const host=$("#rx-mx"); if(!host) return;
+  const r=((live.config&&live.config.remotes)||[]).find(x=>x.name===peer);
+  if(!r) return;
+  const inc=(live.channels&&live.channels.incoming_by_peer&&live.channels.incoming_by_peer[peer])||[];
+  const rows=inc.filter(c=>c.active).map(c=>({ch:c.channel,label:((c.label&&c.label.trim())||"")}));
+  const set=parseMatrix(r.receive_matrix);
+  const srcLabel=(ch)=>{ const row=rows.find(rw=>rw.ch===ch); return (row&&row.label)?row.label:("Ch "+(ch+1)); };
+  const colLabel=(i)=>{
+    const hit=[];
+    for(const e of set){ const f=e.split(":"); if(f[1]==String(i)) hit.push(parseInt(f[0],10)); }
+    if(!hit.length) return (i+1)+" · -";
+    hit.sort((a,b)=>a-b);
+    return (i+1)+" · "+srcLabel(hit[0])+(hit.length>1?" (+"+(hit.length-1)+")":"");
+  };
+  host.querySelectorAll('th.col').forEach(th=>{
+    const ci=+th.dataset.c;
+    const lbl=colLabel(ci);
+    const sp=th.querySelector('span.v');
+    if(sp && sp.textContent!==lbl){ sp.textContent=lbl; th.title=lbl; }
+  });
+}
+let txLastPeer=null, txLastInCh=-1, txLastInDev="";
+let rxSig=null, txSig=null;   // structural signatures — skip grid rebuild when unchanged
+// True while the shared banner is currently showing a 44.1k sample-rate warning, so
+// pollFast can auto-dismiss it once no peer reports sr_mismatch — without clobbering an
+// unrelated banner. Set when the sr banner is shown, cleared when we hide it.
+let srBannerActive=false;
+// The peer whose name-resolution error the shared banner is currently showing, or null.
+// Same pattern as srBannerActive: pollFast takes the banner down once that peer's status
+// no longer carries a dns_error (it resolved, or it connected on its last known address).
+let peerErrBannerPeer=null;
+
+const $  = (s)=>document.querySelector(s);
+const $$ = (s)=>document.querySelectorAll(s);
+const esc = (s)=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const deep = (o)=>JSON.parse(JSON.stringify(o));
+
+/* ── Theme ───────────────────────────────────────────────────────────── */
+const THEMES = ["auto","light","dark"];
+// Auto follows the OS setting, so label it "System" (clearer than "Auto", which doesn't
+// say what it's auto-ing). The button also gets a diagonal light/dark split in this mode.
+const THEME_LABEL = {auto:"System", light:"Light", dark:"Dark"};
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  const btn=$("#themebtn");
+  btn.textContent = THEME_LABEL[t] || (t[0].toUpperCase()+t.slice(1));
+  try{ localStorage.setItem("cascade-theme", t); }catch(e){}
+}
+applyTheme((()=>{ try{ return localStorage.getItem("cascade-theme")||"auto"; }catch(e){ return "auto"; } })());
+$("#themebtn").onclick = ()=>{
+  const cur = document.documentElement.getAttribute("data-theme");
+  applyTheme(THEMES[(THEMES.indexOf(cur)+1)%THEMES.length]);
+};
+
+/* ── Tabs ────────────────────────────────────────────────────────────── */
+$$(".tab").forEach(b=>{
+  b.onclick = async ()=>{
+    $$(".tab").forEach(x=>x.classList.toggle("on", x===b));
+    $$(".page").forEach(p=>p.classList.toggle("on", p.id==="p-"+b.dataset.p));
+    // Re-enumerate audio devices on entering Settings so newly-plugged hardware
+    // appears without a restart. Selecting a new device also applies live on Save
+    // (saved, no restart) via the backend's hot device-switch path.
+    if(b.dataset.p==="settings"){
+      try{ live.devices = await jget("/api/devices"); }catch(e){}
+    }
+    render();
+  };
+});
+function activePage(){ const t=$(".tab.on"); return t?t.dataset.p:"monitor"; }
+
+/* ── WebSocket (commands up, push down) ──────────────────────────────── */
+let ws=null, wsRetry=500, offlineTimer=null;
+function wsConnect(){
+  try{ ws = new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws"); }
+  catch(e){ scheduleWs(); return; }
+  ws.onopen  = ()=>{ wsRetry=500; $("#conn").classList.add("ok");
+    clearTimeout(offlineTimer); document.body.classList.remove("offline");
+    pollSlow(); pollFast();          // refresh everything stale on reconnect
+  };
+  ws.onclose = ()=>{ $("#conn").classList.remove("ok"); scheduleWs();
+    // Grace period avoids a flash during normal page load / brief blips.
+    clearTimeout(offlineTimer);
+    offlineTimer=setTimeout(()=>document.body.classList.add("offline"), 1500);
+  };
+  ws.onerror = ()=>{ try{ws.close();}catch(e){} };
+  ws.onmessage = async (ev)=>{
+    let m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
+    if(m.type==="routing" && live.config){
+      // Push: routing matrices changed (e.g. from another browser).
+      for(const r of (m.remotes||[])){
+        const cr=live.config.remotes.find(x=>x.name===r.name);
+        if(cr){ cr.send_matrix=r.send_matrix; cr.receive_matrix=r.receive_matrix; }
+      }
+      if(activePage()==="tx"||activePage()==="rx") render();
+    } else if(m.type==="state" && m.peer!==undefined && live.config){
+      const cr=live.config.remotes.find(x=>x.name===m.peer);
+      if(cr && m.phase_lock!==undefined){ cr.phase_lock=m.phase_lock; if(activePage()==="monitor") render(); }
+    } else if(m.type==="state"){
+      // Initial state on connect — show any startup warnings as banners.
+      for(const w of (m.startup_warnings||[])) banner(w, true);
+      // Show any current per-peer DNS errors immediately (these ride the on-connect
+      // snapshot now, so a freshly-opened UI doesn't wait for the next peer_error
+      // re-fire).
+      for(const p of (m.peers||[])){
+        if(p.dns_error){ banner(`Peer '${p.name}': ${p.dns_error}`, true); peerErrBannerPeer=p.name; }
+        if(p.sr_mismatch) srBanner(p.name);
+      }
+    } else if(m.type==="config_saved"){
+      onConfigSaved(!!m.ok);
+    } else if(m.type==="channels_changed"){
+      // Incoming channel labels updated — refetch, but only re-render if the structure
+      // actually changed. The backend may emit this every poke cycle (~2s) even when
+      // nothing changed; an unconditional re-render tore down and rebuilt the routing
+      // grid every 2s, which showed as the meters blinking. Compare against the last
+      // rendered structure and skip the rebuild when it matches.
+      try{ live.channels = await jget("/api/channels"); }catch(e){}
+      const p=activePage();
+      if(p==="tx"){
+        const inCh=(live.status&&live.status.in_channels)||0;
+        if(!txEditing && (selectedPeer!==txLastPeer || inCh!==txLastInCh)) renderTX();
+      } else if(p==="rx"){
+        const nOut=(live.status&&live.status.out_channels)||0;
+        const srcs=live.channels&&live.channels.incoming_by_peer&&selectedPeer
+          ? (live.channels.incoming_by_peer[selectedPeer]||[]).filter(c=>c.active).length : 0;
+        const structChanged = selectedPeer!==rxLastPeer || srcs!==rxLastSrcs || nOut!==rxLastOuts;
+        if(structChanged){
+          renderRX();
+        } else if(rxLabelSig(selectedPeer)!==rxLastLabelSig){
+          // Labels changed but the grid structure did not — update the row label text
+          // in place so the live meters are not rebuilt (no blink). Fall back to a full
+          // render only if the in-place update can't map (grid absent / count mismatch).
+          if(rxUpdateLabels(selectedPeer)) rxLastLabelSig=rxLabelSig(selectedPeer);
+          else renderRX();
+        }
+      } else if(p==="settings"){
+        // A peer that just started sending now has a measurable frame size, so refresh
+        // status and re-sync the buffer-dropdown floors promptly rather than waiting for
+        // the next 2s poll. Surgical + safe mid-edit (see updateBufferFloors).
+        try{ live.status = await jget("/api/status"); }catch(e){}
+        updateBufferFloors();
+      }
+    } else if(m.type==="peer_error"){
+      banner(`Peer '${m.peer}': ${m.msg}`, true);
+      peerErrBannerPeer=m.peer;
+    } else if(m.type==="sr_error"){
+      srBanner(m.peer);
+    } else if(m.type==="notice"){
+      // Transient, non-error status from the backend — same banner surface as "Saved."
+      banner(m.msg, false, m.ms||2000);
+    } else if(m.type==="audio_error"){
+      banner(m.msg, true);
+    } else if(m.type==="network_error"){
+      banner(m.msg, true);
+    } else if(m.type==="interfaces"){
+      // Pushed interface list (single source of truth on the daemon). Update and refresh
+      // the Settings dropdown immediately — no polling round-trip.
+      live.interfaces = m.interfaces||[];
+      if(activePage()==="settings" && !settingsFieldFocused()) renderSettings();
+    } else if(m.type==="clear_warnings"){
+      $("#s-banner").classList.remove("show");
+    } else if(m.type==="device_lost"){
+      if(live.status){
+        if(m.device==="input")  live.status.live_in_device  = "";
+        if(m.device==="output") live.status.live_out_device = "";
+      }
+      // Drop the lost device from the cached device list immediately so the dropdown
+      // resolves to the configured-but-absent italic option ("not available") rather
+      // than briefly showing "- none -" until the next 5s device poll refreshes the list.
+      if(live.devices){
+        const cfgName = m.device==="input"
+          ? (live.config&&live.config.audio.input_device)
+          : (live.config&&live.config.audio.output_device);
+        const key = m.device==="input" ? "inputs" : "outputs";
+        if(cfgName && Array.isArray(live.devices[key])){
+          live.devices[key] = live.devices[key].filter(d=>d!==cfgName);
+        }
+      }
+      banner(`${m.device==="input"?"Input":"Output"} device unavailable`, true);
+      if(activePage()==="settings") render();
+      if(activePage()==="monitor")  render();
+      if(activePage()==="tx"||activePage()==="rx") render();
+    } else if(m.type==="device_recovered"){
+      if(live.status){
+        if(m.device==="input")  live.status.live_in_device  = m.name||"";
+        if(m.device==="output") live.status.live_out_device = m.name||"";
+      }
+      $("#s-banner").classList.remove("show");
+      if(activePage()==="settings") render();
+      if(activePage()==="monitor")  render();
+      if(activePage()==="tx"||activePage()==="rx") render();
+    } else if(m.type==="device_error"){
+      banner(`${m.device==="input"?"Input":"Output"} device: ${m.msg}`, true);
+    } else if(m.type==="devices"){
+      // Pushed device inventory (single source of truth on the daemon). Update our copy
+      // and refresh the Settings dropdowns immediately — no polling round-trip.
+      live.devices = { inputs: m.inputs||[], outputs: m.outputs||[] };
+      if(activePage()==="settings" && !settingsFieldFocused()) renderSettings();
+    }
+  };
+}
+function scheduleWs(){ setTimeout(wsConnect, wsRetry); wsRetry=Math.min(wsRetry*2, 8000); }
+function send(obj){
+  if(ws && ws.readyState===1){ ws.send(JSON.stringify(obj)); return true; }
+  return false;
+}
+wsConnect();
+
+/* ── Polling (state down) ────────────────────────────────────────────── */
+async function jget(url){ const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error(url); return r.json(); }
+async function pollFast(){          // 2s — status
+  try{ live.status = await jget("/api/status"); }catch(e){}
+  // Auto-dismiss the 44.1k banner once the condition clears (a peer returned to 48k or
+  // disconnected). Only act while WE put up the sr banner, so we never clobber another
+  // banner that happens to be showing.
+  if(srBannerActive){
+    const any44k = ((live.status&&live.status.peers)||[]).some(p=>p.sr_mismatch);
+    if(!any44k){ $("#s-banner").classList.remove("show"); srBannerActive=false; }
+  }
+  // Likewise the name-resolution banner: down once that peer no longer reports the error.
+  if(peerErrBannerPeer!==null){
+    const pe = ((live.status&&live.status.peers)||[]).find(p=>p.name===peerErrBannerPeer);
+    if(!pe || !pe.dns_error){ $("#s-banner").classList.remove("show"); peerErrBannerPeer=null; }
+  }
+  const p=activePage();
+  if(p==="monitor") render();
+  // Re-render routing pages only when something structural changed — peer,
+  // source count, or device channel count. The 25Hz meters update the DOM
+  // surgically and must not be interrupted by a full teardown every 2s.
+  else if(p==="tx"){
+    const inCh=(live.status&&live.status.in_channels)||0;
+    const inDev=(live.status&&live.status.live_in_device)||"";
+    if(!txEditing && (selectedPeer!==txLastPeer || inCh!==txLastInCh || inDev!==txLastInDev)){ txLastInDev=inDev; renderTX(); }
+  }
+  else if(p==="rx"){
+    const nOut=(live.status&&live.status.out_channels)||0;
+    const outDev=(live.status&&live.status.live_out_device)||"";
+    const srcs=live.channels&&live.channels.incoming_by_peer&&selectedPeer
+      ? (live.channels.incoming_by_peer[selectedPeer]||[]).filter(c=>c.active).length : 0;
+    if(selectedPeer!==rxLastPeer || srcs!==rxLastSrcs || nOut!==rxLastOuts || outDev!==rxLastOutDev){ rxLastOutDev=outDev; renderRX(); }
+    else if(rxLabelSig(selectedPeer)!==rxLastLabelSig){ if(rxUpdateLabels(selectedPeer)) rxLastLabelSig=rxLabelSig(selectedPeer); else renderRX(); }
+  }
+  else if(p==="settings"){
+    // Keep each remote's buffer dropdown options in sync with its live incoming-frame
+    // floor. Surgical + idempotent (only refills a select whose floor actually moved),
+    // so it's safe to call every tick and safe mid-edit. No draft/focus gating: that
+    // would miss a frame change until a page switch.
+    updateBufferFloors();
+  }
+  renderTopbar();
+}
+async function pollSlow(){          // 5s — config + channels
+  // Do NOT refetch config while the user has unsaved edits: overwriting live.config
+  // (and any subsequent settings re-render) is what clobbers an in-progress remote
+  // edit. The draft holds the user's work; leave the server copy alone until save or
+  // discard. (Channels are unrelated to the settings form and always safe to refresh.)
+  if(!draft){ try{ live.config = await jget("/api/config"); }catch(e){} }
+  try{ live.channels = await jget("/api/channels"); }catch(e){}
+  // Device list and interface list are NOT polled here — both arrive via WS push
+  // (`devices` / `interfaces`) as the single source of truth on the daemon.
+  const p=activePage();
+  // On the routing pages a full render() tears down and rebuilds the grid, which
+  // interrupts the surgical 25Hz meter updates (visible as a blink). Re-render those
+  // pages only on a real structural change — same guard pollFast uses. Monitor and
+  // Settings have no live meters, so a full render is fine (skip Settings mid-edit).
+  if(p==="tx"){
+    const inCh=(live.status&&live.status.in_channels)||0;
+    const inDev=(live.status&&live.status.live_in_device)||"";
+    if(!txEditing && (selectedPeer!==txLastPeer || inCh!==txLastInCh || inDev!==txLastInDev)){ txLastInDev=inDev; renderTX(); }
+  } else if(p==="rx"){
+    const nOut=(live.status&&live.status.out_channels)||0;
+    const outDev=(live.status&&live.status.live_out_device)||"";
+    const srcs=live.channels&&live.channels.incoming_by_peer&&selectedPeer
+      ? (live.channels.incoming_by_peer[selectedPeer]||[]).filter(c=>c.active).length : 0;
+    if(selectedPeer!==rxLastPeer || srcs!==rxLastSrcs || nOut!==rxLastOuts || outDev!==rxLastOutDev){ rxLastOutDev=outDev; renderRX(); }
+    else if(rxLabelSig(selectedPeer)!==rxLastLabelSig){ if(rxUpdateLabels(selectedPeer)) rxLastLabelSig=rxLabelSig(selectedPeer); else renderRX(); }
+  } else if(p==="monitor"){
+    render();
+  }
+  // NOTE: the settings page is deliberately NOT re-rendered here. It has no data that
+  // needs a 5s refresh — device/interface lists arrive via WS push (`devices` /
+  // `interfaces`), identity/port come from the config which we don't refetch while
+  // editing, and the topbar is handled by pollFast. Re-rendering settings on this tick
+  // would rebuild the #f-remotes subtree and steal focus from a remote field the user has
+  // clicked into but not yet typed in. Settings is only (re)built on nav, on explicit
+  // edits, and via the guarded `devices`/`interfaces` WS handlers.
+}
+async function pollOnce(){          // load-time — devices + interfaces
+  try{ live.devices = await jget("/api/devices"); }catch(e){}
+  try{ const i=await jget("/api/interfaces"); live.interfaces=i.interfaces||[]; }catch(e){}
+}
+setInterval(pollFast, 2000);
+setInterval(pollSlow, 5000);
+
+/* ── Level meters ─────────────────────────────────────────────────────────
+   Surgical and non-disruptive: polls /api/peaks and writes ONLY the bar
+   widths in place. It never calls render(), never rebuilds the matrix, and
+   never touches an input — so it cannot disturb routing or label editing,
+   even mid-edit. Runs at ~25Hz only while a routing page is visible; idles
+   otherwise (no requests, no work). Each poll names what it shows — the RX page
+   sends ?peer=<remote> — which is what keeps the daemon metering that remote's
+   unrouted channels; when no page polls, that metering stops by itself. */
+let meterPeaks=null, meterTimer=null;
+function meterCtx(){
+  if(document.hidden) return null;
+  const p=activePage();
+  if(p==="tx") return {host:$("#tx-mx"), arr:(meterPeaks&&meterPeaks.input)||[], peer:""};
+  if(p==="rx") return {host:$("#rx-mx"), peer:selectedPeer||"",
+    arr:(meterPeaks&&meterPeaks.incoming&&selectedPeer&&meterPeaks.incoming[selectedPeer])||[]};
+  return null;
+}
+function lvlPct(v){                       // linear amplitude → bar %  (dB scale, −18 = 50%)
+  if(!(v>0)) return 0;
+  const db=20*Math.log10(v>1?1:v);        // dBFS, clamped at 0
+  // Two segments, hinged at −18 dBFS so it sits exactly mid-scale:
+  //   −60..−18 → 0..50%    (1.19 %/dB)  — the widened lower half
+  //   −18..0   → 50..100%  (2.78 %/dB)  — the same slope as a −36..0 scale,
+  //                                       so −12 is 66.7% and −6 is 83.3%
+  // The hinge is why this is not a single linear-in-dB mapping: a straight −60..0
+  // would put −18 at 70%. Widening the bottom must not move the top.
+  const p = db >= -18 ? 50 + (db + 18) / 18 * 50
+                      : (db + 60) / 42 * 50;
+  return p<0?0:(p>100?100:p);
+}
+function meterApply(ctx){
+  if(!ctx||!ctx.host) return;
+  const tone=(meterPeaks&&meterPeaks.tone)||[];
+  const now=performance.now();
+  ctx.host.querySelectorAll('th.rowl').forEach(th=>{
+    const m=th.querySelector('.rl-m'); if(!m) return;
+    const fill=m.querySelector('i'), hold=m.querySelector('b');
+    let v;
+    if(th.dataset.tpk!=null)      v=tone[+th.dataset.tpk]||0;   // tone leg (L/R)
+    else if(th.dataset.pk!=null){ const pk=+th.dataset.pk; v=pk<0?0:(ctx.arr[pk]||0); }
+    else return;
+    const pct=lvlPct(v);
+    fill.style.clipPath='inset(0 '+(100-pct).toFixed(1)+'% 0 0)';
+    // Peak hold: instant rise, hold ~700ms, then fall ~40%/s.
+    let h=+(hold.dataset.h||0), ht=+(hold.dataset.t||0);
+    if(pct>=h){ h=pct; ht=now; }
+    else if(now-ht>700){ h-=1.6; if(h<pct) h=pct; }
+    hold.dataset.h=h; hold.dataset.t=ht;
+    hold.style.left=h.toFixed(1)+'%';
+    hold.style.opacity=h>0.5?'1':'0';
+  });
+}
+async function meterTick(){
+  const ctx=meterCtx();
+  if(ctx){
+    const url='/api/peaks'+(ctx.peer?'?peer='+encodeURIComponent(ctx.peer):'');
+    try{ meterPeaks=await jget(url); meterApply(meterCtx()); }catch(e){}
+    meterTimer=setTimeout(meterTick, 40);    // ~25Hz while a routing page is shown
+  }else{
+    meterTimer=setTimeout(meterTick, 350);   // idle: just watch for page/visibility
+  }
+}
+meterTimer=setTimeout(meterTick, 300);
+(async()=>{ await pollOnce(); await pollSlow(); await pollFast(); render(); })();
+
+/* ── Top bar ─────────────────────────────────────────────────────────── */
+function renderTopbar(){
+  const st=live.status;
+  const nm = st? String(st.name||"") : "";
+  $("#b-name").textContent = (nm && nm.toLowerCase()!=="cascade")? nm : "";
+  const conflict = !!(st && st.port_conflict);
+  const pc = $("#portconflict");
+  if(conflict){
+    pc.textContent = "PORT " + (st.port||"?") + " IN USE";
+    pc.style.display = "";
+  } else {
+    pc.style.display = "none";
+  }
+  const oa=$("#onair");
+  oa.style.display = conflict ? "none" : "";
+  oa.classList.toggle("live", !conflict && !!(st&&st.on_air));
+}
+$("#onair").onclick = ()=>{
+  const cur = !!(live.status && live.status.on_air);
+  send({type:"on_air", enabled:!cur});
+  if(live.status) live.status.on_air = !cur;
+  if(!cur && live.channels) live.channels.tone_by_peer = {};  // backend force-clears tone
+  renderTopbar();
+  if(activePage()==="tx") renderTX();   // lock/unlock tone rows + drop red crosspoints
+};
+
+/* Receive-buffer gauge — the three tap points from CASCADE_AUDIO_RECEIVE_SPEC
+   §10: depth, setpoint, and the prebuffer-hold flag. A GAUGE, not a counter:
+   reading it consumes/resets nothing, and the values are published lock-free by
+   the render callback (never read across the audio thread).
+
+   HOLD takes precedence over the level: while a channel is silently refilling to
+   setpoint it emits nothing, so a depth reading is meaningless as "health" — the
+   spec's recovery is a silent, time-proportional refill with no intermediate
+   "catching up" state, and the honest display of that is the striped hold bar,
+   not a part-full one. The figure beside it stays on the set size throughout.
+
+   Otherwise thresholds are in MILLISECONDS, not percent: depth normally saws
+   between target−20ms (one packet) and target, so a fixed percentage wrongly
+   ambers small buffers. Green = inside the sawtooth band (within 25ms of
+   target). Amber = drained below the band (jitter/loss eating the cushion).
+   Red = under half — close to underrun. Over target by >25ms = blue, bar full.
+   Shows — when the peer has no active receive channels. */
+// Buffer-health cell as {cls, html} parts (the <td>'s className + innerHTML), so the
+// monitor can write it into an existing cell in place rather than rebuilding the row.
+// The text shows the buffer SET SIZE (target) — stable, changing only on a config or
+// incoming-frame change — while the bar carries the live fill and the tooltip carries the
+// range it covered since the last update. A constantly-ticking fill number added churn and
+// duplicated what the bar already shows.
+function bufCellParts(p){
+  if(p.buf_target_ms===undefined || p.state!=="connected")
+    return {cls:"mono muted", html:"-"};
+  // Prebuffering: the striped bar carries the state on its own. The text stays on the set
+  // size, exactly as it reads when connected — it is the same fact either way, and holding
+  // it still means entering or leaving the prebuffer hold changes the bar alone instead of
+  // swapping the number for a word and shifting the cell.
+  if(p.buf_hold)
+    return {cls:"bufcell", html:
+      `<div class="bufg hold" title="Prebuffering — filling to `+
+      `${(p.buf_target_ms||0).toFixed(0)} ms before playback resumes"><i style="width:100%"></i></div>`+
+      `<span class="bufms mono">${(p.buf_target_ms||0).toFixed(0)} ms</span>`};
+  // d is the MEAN over the last tick, averaged across the peer's active channels and
+  // again across every render in the interval — not an instantaneous reading. Depth is a
+  // sawtooth (a frame in per packet, a period out per render), so any single sample lands
+  // somewhere on that ramp and a bar drawn from one would swing by a whole frame while the
+  // buffer itself sat still. Averaging both axes cancels the ramp and gives one channel's
+  // one-cycle dip 1/(channels x renders) of the reading, so the bar holds steady and still
+  // moves promptly when the buffer genuinely does. lo/hi are the spread d moved through:
+  // TOOLTIP ONLY — neither the width nor the colour is drawn from an extreme.
+  const d=p.buf_ms;
+  const lo=(typeof p.buf_min_ms==="number"? p.buf_min_ms : d);
+  const hi=(typeof p.buf_max_ms==="number"? p.buf_max_ms : d);
+  const t=Math.max(1,p.buf_target_ms);
+  const pct=Math.min(100, Math.round(100*d/t));
+  // Tolerance scales with the buffer and never sits tighter than one frame plus a little.
+  // A fixed +/-25ms band was ~20% at the 120ms default but wider than the whole buffer at
+  // 40ms and below, where everything read "ok"; and it cannot be tightened flat, because a
+  // healthy buffer does not rest ON the setpoint: the sawtooth puts its mean about half a
+  // frame below the peak, and the drain servo releases on a lagging average, leaving a few
+  // ms more. The band is measured from the frame so it stays correct at every frame size.
+  // Below ~50ms there is no headroom left to warn about, and it covers the whole range.
+  const frame = (typeof p.in_frame_ms==="number" && p.in_frame_ms>0)? p.in_frame_ms : 20;
+  const tol = Math.max(0.15*t, frame+5);
+  const cls = d>=t+tol? "over" : d>=t-tol? "ok" : d>=t*0.5? "warn" : "bad";
+  const ttl = d>=t+tol? " (over target, extra latency)" : "";
+  // Tooltip: the mean, plus the spread it moved through when that spread is worth a
+  // mention. A range that is always printed reads as instability even when it is only the
+  // ordinary one-frame sawtooth.
+  const span = (hi-lo>=1)? `${d.toFixed(0)} ms (${lo.toFixed(0)}-${hi.toFixed(0)})`
+                         : `${d.toFixed(0)} ms`;
+  return {cls:"bufcell", html:
+    `<div class="bufg ${cls}" title="${span} of ${t.toFixed(0)} ms over the last update, average across channels${ttl}"><i style="width:${pct}%"></i></div>`+
+    `<span class="bufms mono">${t.toFixed(0)} ms</span>`};
+}
+// Write html (and optionally a className) into a cell only when it changed, caching the
+// last value on the node. Preserves text selection + avoids layout churn on unchanged
+// cells — the core of the surgical monitor update.
+function setCell(td, cls, html){
+  if(cls!==null && td.className!==cls) td.className=cls;
+  if(td.__h!==html){ td.__h=html; td.innerHTML=html; }
+}
+
+/* ── Matrix helpers ──────────────────────────────────────────────────── */
+function parseMatrix(s){
+  const set=new Set();
+  if(!s) return set;
+  for(const part of s.split(",")){
+    const f=part.split(":");
+    if(f.length>=2 && (f.length<3 || f[2]!=="0")) set.add(f[0]+":"+f[1]);
+  }
+  return set;
+}
+function matrixString(set){
+  return [...set].map(k=>k+":1").join(",");
+}
+function enabledRemotes(){
+  return live.config ? live.config.remotes.filter(r=>r.enabled) : [];
+}
+function chLabel(i){
+  const l = live.config && live.config.audio.channel_labels && live.config.audio.channel_labels[i];
+  return (l && l.trim()) ? l : "Ch "+(i+1);
+}
+/* Build a crosspoint table. rows/cols: [{label}], isOn(r,c), onClick(r,c).
+   onRowEdit(ri, newLabel) — optional: makes row labels click-to-edit.
+   Hovering a crosspoint highlights its row and column headers + cells. */
+function mxTable(rows, cols, isOn, onClick, onRowEdit){
+  const t=document.createElement("table"); t.className="mx";
+  const thead=document.createElement("thead");
+  const hr=document.createElement("tr");
+  const corner=document.createElement("th"); corner.className="corner"; hr.appendChild(corner);
+  cols.forEach((c,ci)=>{ const th=document.createElement("th"); th.className="col";
+    th.dataset.c=ci; const sp=document.createElement("span"); sp.className="v";
+    sp.textContent=c.label; th.appendChild(sp); th.title=c.label; hr.appendChild(th); });
+  thead.appendChild(hr); t.appendChild(thead);
+  const tb=document.createElement("tbody");
+  rows.forEach((r,ri)=>{
+    const tr=document.createElement("tr");
+    if(r.tone) tr.className="tonerow"+((ri>0&&!rows[ri-1].tone)?" first":"");
+    const th=document.createElement("th"); th.className="rowl"; th.dataset.r=ri;
+    if(r.pk!=null)  th.dataset.pk=r.pk;
+    if(r.tpk!=null) th.dataset.tpk=r.tpk;
+    const wrap=document.createElement("div"); wrap.className="rl-w";
+    const num=document.createElement("span"); num.className="rl-n";
+    num.textContent=(r.num!=null? r.num : "");
+    const m=document.createElement("div"); m.className="rl-m";
+    m.appendChild(document.createElement("i"));              // level fill
+    m.appendChild(document.createElement("b"));              // peak-hold marker
+    const lbl=document.createElement("span"); lbl.className="rl-t";
+    const shown=r.label || r.ph || "";
+    lbl.textContent=shown; lbl.title=shown;
+    if(!r.label && r.ph) lbl.classList.add("ph");           // muted placeholder (e.g. "Ch 9")
+    wrap.appendChild(num); wrap.appendChild(m); wrap.appendChild(lbl);
+    th.appendChild(wrap);
+    if(onRowEdit && !r.tone){
+      th.style.cursor="text";
+      th.onclick=()=>{
+        if(th.querySelector("input")) return;
+        const inp=document.createElement("input"); inp.value=r.label||"";
+        lbl.style.display="none"; wrap.appendChild(inp); inp.focus(); inp.select();
+        txEditing=true;
+        let done=false;
+        const fin=()=>{ inp.remove(); lbl.style.display=""; txEditing=false; };
+        const idle=setTimeout(()=>{ if(!done) inp.blur(); }, 20000); // resume updates if abandoned
+        const commit=(advance)=>{ if(done) return; done=true; clearTimeout(idle); fin(); onRowEdit(ri, inp.value.trim(), advance); };
+        inp.onkeydown=(e)=>{
+          if(e.key==="Enter"){ commit(true); }                 // commit + edit next row
+          else if(e.key==="Escape"){ done=true; clearTimeout(idle); fin(); }
+        };
+        inp.onblur=()=>commit(false);
+      };
+    }
+    tr.appendChild(th);
+    cols.forEach((c,ci)=>{
+      const td=document.createElement("td");
+      const b=document.createElement("button"); b.className="xp"+(r.tone?" tone":"")+(isOn(ri,ci)?" on":"");
+      b.dataset.r=ri; b.dataset.c=ci;
+      b.title=r.label+" → "+c.label;
+      b.onclick=()=>onClick(ri,ci,b);
+      td.appendChild(b); tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  // Crosshair: highlight the hovered cell's row + column.
+  let hl=[];
+  t.addEventListener("mouseover",(e)=>{
+    const b=e.target.closest(".xp"); if(!b) return;
+    hl.forEach(el=>el.classList.remove("hl")); hl=[];
+    const r=b.dataset.r, c=b.dataset.c;
+    t.querySelectorAll(`th[data-r="${r}"], th[data-c="${c}"], .xp[data-r="${r}"], .xp[data-c="${c}"]`)
+      .forEach(el=>{ el.classList.add("hl"); hl.push(el); });
+  });
+  t.addEventListener("mouseleave",()=>{ hl.forEach(el=>el.classList.remove("hl")); hl=[]; });
+  return t;
+}
+let selectedPeer=null;          // ganged across TX and RX pages
+let txPendingEdit=null;         // row to auto-open after an Enter-advance label edit
+let txEditing=false;            // true while a row-label input is active — suppresses re-renders
+function peerButtons(host, onpick){
+  const rem=enabledRemotes();
+  if(!rem.some(r=>r.name===selectedPeer)) selectedPeer=rem.length? rem[0].name : null;
+  host.innerHTML="";
+  rem.forEach(r=>{
+    const b=document.createElement("button");
+    b.className="btn"+(r.name===selectedPeer?" sel":"");
+    b.textContent=r.name;
+    b.onclick=()=>{ selectedPeer=r.name; onpick(); };
+    host.appendChild(b);
+  });
+  return rem.length>0;
+}
+
+/* ── TX routing — radio button: one source per slot, one slot per source ── */
+function renderTX(){
+  if(txEditing) return;  // never clobber an active label input
+  const ok=peerButtons($("#tx-peer"), renderTX);
+  $("#tx-empty").style.display = ok? "none":"block";
+  if(!ok || !live.config){ $("#tx-mx").innerHTML=""; txSig=null; return; }
+  const peer=selectedPeer;
+  const r=live.config.remotes.find(x=>x.name===peer);
+  if(!r){ $("#tx-mx").innerHTML=""; txSig=null; return; }
+  const inCh = (live.status && live.status.in_channels) || 0;
+  const set=parseMatrix(r.send_matrix);
+  // Subtitle: name the input interface so the flow (input → network stream) is explicit.
+  // Updated BEFORE the structural-signature early-return below, so a device change refreshes
+  // the name even when the grid itself is unchanged (and the rebuild is skipped).
+  {
+    const inDev = (live.status && live.status.live_in_device) || "";
+    const sub = $("#tx-subtitle");
+    if(sub) sub.textContent = "- " + (inDev || "input") + " → network stream, one per slot";
+  }
+  // Structural signature: peer + input channel count + channel labels + send matrix
+  // + tone state + on-air. Skip the rebuild (which wipes the meter DOM → blink) when
+  // nothing structural changed since the last render.
+  const toneSig = (live.channels && live.channels.tone_by_peer && live.channels.tone_by_peer[peer]) || [];
+  const sig = JSON.stringify([peer, inCh, live.config.audio.channel_labels, r.send_matrix,
+                              toneSig, !!(live.status && live.status.on_air)]);
+  if(sig===txSig) return;
+  txSig=sig;
+  $("#tx-mx").innerHTML="";
+  // Grid follows the live input device count. Inherited routes to channels beyond the
+  // current device stay in config (dormant) but are not shown and not sent (the encoder
+  // gate makes them inert), so the grid tracks the device, not the route list — a
+  // 1-channel mic shows 1 channel, not leftover routes from a previously wider device.
+  const n = Math.min(inCh, 128);
+  if(!n){
+    txLastPeer=peer; txLastInCh=inCh;
+    const noDevice = !live.status || !live.status.live_in_device;
+    $("#tx-mx").innerHTML=`<div class="muted" style="padding:10px 2px">${
+      noDevice ? "No input device selected - choose one in Settings." :
+                 "No active incoming streams from this remote yet."
+    }</div>`;
+    $("#tx-fill").onclick=null; $("#tx-clear").onclick=()=>{}; $("#tx-clearlabels").onclick=()=>{};
+    return;
+  }
+  const rows=[...Array(n)].map((_,i)=>{
+    const lab=((live.config.audio.channel_labels&&live.config.audio.channel_labels[i])||"").trim();
+    return {num:i+1, label:lab, ph:"Ch "+(i+1), pk:i};                  // sources (left)
+  });
+  rows.push({num:"L", label:"Tone", tone:1, tpk:0});                   // line-up tone — L is
+  rows.push({num:"R", label:"Tone", tone:2, tpk:1});                   // EBU-interrupted, R steady
+  const toneArr = (live.channels && live.channels.tone_by_peer && live.channels.tone_by_peer[peer]) || [];
+  const onAir = !!(live.status && live.status.on_air);
+  // Destination headers: a slot shows "N · -" when nothing is routed to it, or
+  // "N · <source label>" when a source (or tone) is routed - the label travels with
+  // the audio.
+  const txColLabel=(i)=>{
+    if(toneArr[i]===1) return (i+1)+" · Tone L";
+    if(toneArr[i]===2) return (i+1)+" · Tone R";
+    for(const e of set){
+      const f=e.split(":");
+      if(f[1]==String(i)) return (i+1)+" · "+chLabel(parseInt(f[0],10));
+    }
+    return (i+1)+" · -";
+  };
+  const cols=[...Array(n)].map((_,i)=>({label:txColLabel(i)}));
+  let txTbl=null;
+  // Repaint all crosspoint buttons from the current set + tone state, in place, without
+  // rebuilding the table (which would wipe the meter DOM and blink). Used after a toggle.
+  const repaint=(s, tones)=>{
+    if(!txTbl) return;
+    txTbl.querySelectorAll('.xp').forEach(b=>{
+      const ri=+b.dataset.r, ci=+b.dataset.c;
+      const on = ri<n ? s.has(ri+":"+ci) : ((tones[ci]|0)===(ri-n+1));
+      b.classList.toggle("on", on);
+    });
+    // Refresh destination header labels in place so the inherited source name appears
+    // instantly on toggle (no full rebuild, so the meters don't blink).
+    txTbl.querySelectorAll('th.col').forEach(th=>{
+      const ci=+th.dataset.c;
+      const lbl=txColLabel(ci);
+      const sp=th.querySelector('span.v');
+      if(sp && sp.textContent!==lbl){ sp.textContent=lbl; th.title=lbl; }
+    });
+  };
+  const apply=(newSet)=>{
+    r.send_matrix = matrixString(newSet)||null;
+    send({type:"routing_tx", peer, matrix: matrixString(newSet)});
+    // Keep the live set + signature in step so the next structural poll doesn't rebuild.
+    set.clear(); for(const e of newSet) set.add(e);
+    repaint(set, toneArr);
+    txSig=JSON.stringify([peer, inCh, live.config.audio.channel_labels, r.send_matrix,
+                          toneArr, onAir]);
+  };
+  const sendTone=(slots)=>{
+    send({type:"tone_routing", peer, slots});
+    if(live.channels){ live.channels.tone_by_peer = live.channels.tone_by_peer||{};
+      live.channels.tone_by_peer[peer] = slots; }
+  };
+  txLastPeer=peer; txLastInCh=inCh;
+  txTbl=mxTable(rows, cols,
+    (ri,ci)=> ri<n ? set.has(ri+":"+ci) : ((toneArr[ci]|0)===(ri-n+1)),
+    (ri,ci)=>{
+      if(ri>=n){                                          // tone rows — just a source
+        if(onAir) return;                                 // locked: tone never on air
+        const t=ri-n+1;                                   // 1 = Tone L, 2 = Tone R
+        if((toneArr[ci]|0)===t){ toneArr[ci]=0; }         // click active = clear
+        else{
+          toneArr[ci]=t;                                  // radio within the column:
+          let changed=false;                              // tone replaces the signal source
+          for(const e of [...set]){
+            if(e.split(":")[1]==String(ci)){ set.delete(e); changed=true; }
+          }
+          if(changed){ r.send_matrix=matrixString(set)||null;
+            send({type:"routing_tx", peer, matrix: matrixString(set)}); }
+        }
+        sendTone(toneArr.slice(0,n));
+        repaint(set, toneArr);                            // in place — no blink
+        txSig=JSON.stringify([peer, inCh, live.config.audio.channel_labels, r.send_matrix,
+                              toneArr, onAir]);
+        return;
+      }
+      const k=ri+":"+ci;
+      const ns=new Set(set);
+      if(ns.has(k)){ ns.delete(k); }                      // click active = clear
+      else{
+        for(const e of [...ns]){                          // radio: clear row + column
+          const [s,d]=e.split(":");
+          if(s==String(ri) || d==String(ci)) ns.delete(e);
+        }
+        ns.add(k);
+        if(toneArr[ci]){                                  // signal replaces tone here
+          toneArr[ci]=0;                                  // update local tone state too
+          sendTone(toneArr.slice(0,n));
+        }
+      }
+      apply(ns);
+    },
+    (ri,newLabel,advance)=>{                              // click-to-edit channel label
+      send({type:"set_label", channel:ri, label:newLabel});
+      if(live.config){
+        const L=live.config.audio.channel_labels||(live.config.audio.channel_labels=[]);
+        while(L.length<=ri) L.push("");
+        L[ri]=newLabel;
+      }
+      txPendingEdit = (advance && ri+1<n)? ri+1 : null;     // Enter → next label
+      renderTX();
+    });
+  $("#tx-mx").appendChild(txTbl);
+  if(txPendingEdit!=null){
+    const th=$("#tx-mx").querySelector('th.rowl[data-r="'+txPendingEdit+'"]');
+    txPendingEdit=null;
+    if(th) th.click();
+  }
+  $("#tx-fill").onclick=()=>{
+    // 1:1 routing. Each destination receives a signal route; any tone on those
+    // destinations is cleared — exactly matching per-crosspoint radio behaviour
+    // where clicking signal onto a tone slot displaces the tone.
+    const ns=new Set();
+    for(let i=0;i<n;i++) ns.add(i+":"+i);
+    let toneChanged=false;
+    for(let i=0;i<n;i++){ if(toneArr[i]){ toneArr[i]=0; toneChanged=true; } }
+    if(toneChanged) sendTone(toneArr.slice(0,n));
+    apply(ns);
+  };
+  $("#tx-clear").onclick=()=>{
+    if(toneArr.some(t=>t)){ for(let i=0;i<n;i++) toneArr[i]=0; sendTone(toneArr.slice(0,n)); }
+    apply(new Set());
+  };
+  $("#tx-clearlabels").onclick=()=>{
+    const L=(live.config&&live.config.audio.channel_labels)||[];
+    for(let i=0;i<L.length;i++){
+      if(L[i]&&L[i].trim()){ send({type:"set_label", channel:i, label:""}); L[i]=""; }
+    }
+    renderTX();
+  };
+}
+
+/* ── RX routing — many-to-many: source rows (left), output columns (top) ── */
+function renderRX(){
+  const ok=peerButtons($("#rx-peer"), renderRX);
+  $("#rx-empty").style.display = ok? "none":"block";
+  if(!ok || !live.config){ $("#rx-mx").innerHTML=""; rxSig=null; return; }
+  const peer=selectedPeer;
+  const r=live.config.remotes.find(x=>x.name===peer);
+  if(!r){ $("#rx-mx").innerHTML=""; rxSig=null; return; }
+  const inc = (live.channels && live.channels.incoming_by_peer && live.channels.incoming_by_peer[peer]) || [];
+  const srcs = inc.filter(c=>c.active);
+  const nOutSig = (live.status && live.status.out_channels) || 0;
+  // Subtitle: name the output interface so the flow (network stream → output) is explicit.
+  // Updated BEFORE the signature guard and the early returns below, so a device change
+  // (including the output device being lost) refreshes the name even when the grid is
+  // unchanged or absent.
+  {
+    const outDev = (live.status && live.status.live_out_device) || "";
+    const sub = $("#rx-subtitle");
+    if(sub) sub.textContent = "- network stream → " + (outDev || "output");
+  }
+  // Structural signature: peer + active source channels + their labels + output count
+  // + the receive matrix. If unchanged since the last render, skip the rebuild — wiping
+  // and recreating #rx-mx destroys the meter DOM and is seen as a blink when a poll or
+  // a routing/channels event fires with no actual change.
+  const sig = JSON.stringify([peer, srcs.map(c=>[c.channel,c.label]), nOutSig, r.receive_matrix]);
+  if(sig===rxSig) return;
+  rxSig=sig;
+  $("#rx-mx").innerHTML="";
+  // Incoming sources: only streams the peer is actually sending — active, or
+  // named by the peer. No generic padding (per "show only active received streams").
+  // Presence follows the live stream: a source shows only while it is actually
+  // receiving audio (active decays ~1.5s after packets stop), regardless of any
+  // name still attached. Routing in config is left intact, so if the stream
+  // returns the channel reappears on its existing crosspoints.
+  const rows = srcs.map(c=>({num:c.channel+1, label:((c.label&&c.label.trim())||""), ph:"Ch "+(c.channel+1), ch:c.channel, pk:c.channel}));
+  if(!rows.length){
+    rxLastPeer=peer; rxLastSrcs=0; rxLastOuts=nOutSig; rxLastLabelSig=rxLabelSig(peer);
+    $("#rx-mx").innerHTML='<div class="muted" style="padding:10px 2px">No active incoming streams from this remote yet.</div>';
+    $("#rx-fill").onclick=null; $("#rx-clear").onclick=()=>{};
+    return;
+  }
+  // Output columns are exactly the live output device's channel count.
+  // The backend's set_recv_routing already clamps routes to live_out_ch on every
+  // device change, so this value is always authoritative.
+  const nOut = (live.status && live.status.out_channels) || 0;
+  if(!nOut){
+    rxLastPeer=peer; rxLastSrcs=rows.length; rxLastOuts=0; rxLastLabelSig=rxLabelSig(peer);
+    const noDevice = !live.status || !live.status.live_out_device;
+    $("#rx-mx").innerHTML=`<div class="muted" style="padding:10px 2px">${
+      noDevice ? "No output device selected - choose one in Settings." :
+                 "No output device channels available."
+    }</div>`;
+    $("#rx-fill").onclick=null; $("#rx-clear").onclick=()=>{};
+    return;
+  }
+  // Subtitle is set above (before the signature guard) so device changes always refresh it.
+  const set=parseMatrix(r.receive_matrix);
+  // Output headers inherit the routed incoming stream's label, same as the TX page:
+  // "N · -" when nothing is routed to this output, "N · <source label>" when one source
+  // is routed, or "N · <label> (+k)" when several incoming streams sum into it.
+  // Map source channel -> the INCOMING stream's label (what the left rows show, from the
+  // remote's sent labels), NOT the local channel_labels. This is the label that should
+  // travel onto the output header.
+  const rxSrcLabel=(ch)=>{
+    const row=rows.find(rw=>rw.ch===ch);
+    return (row && row.label) ? row.label : ("Ch "+(ch+1));
+  };
+  const rxColLabel=(i)=>{
+    const hit=[];
+    for(const e of set){
+      const f=e.split(":");
+      if(f[1]==String(i)) hit.push(parseInt(f[0],10));
+    }
+    if(!hit.length) return (i+1)+" · -";
+    hit.sort((a,b)=>a-b);   // primary = lowest-numbered source, stable vs routing order
+    const first=rxSrcLabel(hit[0]);
+    return (i+1)+" · "+first+(hit.length>1? " (+"+(hit.length-1)+")":"");
+  };
+  const cols=[...Array(nOut)].map((_,i)=>({label:rxColLabel(i)}));
+  const rxRepaintHeaders=(tbl)=>{
+    if(!tbl) return;
+    tbl.querySelectorAll('th.col').forEach(th=>{
+      const ci=+th.dataset.c;
+      const lbl=rxColLabel(ci);
+      const sp=th.querySelector('span.v');
+      if(sp && sp.textContent!==lbl){ sp.textContent=lbl; th.title=lbl; }
+    });
+  };
+  const apply=(newSet)=>{
+    r.receive_matrix = matrixString(newSet)||null;
+    send({type:"routing_rx", peer, matrix: matrixString(newSet)});
+    // Update the stored signature so the next structural poll doesn't see this
+    // self-induced change as a reason to rebuild (which would blink the meters).
+    rxSig=JSON.stringify([peer, rows.map(c=>[c.ch,c.label]), nOut, r.receive_matrix]);
+  };
+  rxLastPeer=peer; rxLastSrcs=rows.length; rxLastOuts=nOut; rxLastLabelSig=rxLabelSig(peer);
+  const tbl=mxTable(rows, cols,
+    (ri,ci)=>set.has(rows[ri].ch+":"+ci),
+    (ri,ci,cell)=>{
+      const k=rows[ri].ch+":"+ci;
+      if(set.has(k)){ set.delete(k); cell.classList.remove("on"); }
+      else { set.add(k); cell.classList.add("on"); }   // free toggle (summing matrix)
+      apply(set);
+      rxRepaintHeaders(tbl);   // inherited output label updates instantly
+    });
+  $("#rx-mx").appendChild(tbl);
+  // Repaint every crosspoint's on/off class from `set`, in place.
+  //
+  // 1:1 and Clear change only WHICH cells are on — the row and column structure is
+  // identical either side. A full renderRX() DOM rebuild would destroy and recreate every
+  // meter element — each bar losing its clip-path width and each peak-hold marker its
+  // dataset state — so the whole column would blink empty until the next 40ms meter
+  // tick. `apply()` already refreshes rxSig
+  // specifically to stop the structural poll rebuilding for this reason; forcing a
+  // rebuild here defeated that.
+  //
+  // The on-state lives on the `.xp` BUTTON inside each td, not on the td — the
+  // per-crosspoint click handler toggles `on` on that button. Drive the repaint from the
+  // buttons' own data-r/data-c so it cannot drift out of step with how they were built.
+  const rxRepaintCells=(t)=>{
+    t.querySelectorAll(".xp").forEach(b=>{
+      const ri=+b.dataset.r, ci=+b.dataset.c;
+      const r=rows[ri]; if(!r) return;
+      b.classList.toggle("on", set.has(r.ch+":"+ci));
+    });
+  };
+  $("#rx-fill").onclick=()=>{
+    set.clear();
+    const n=Math.min(rows.length, nOut);
+    for(let i=0;i<n;i++) set.add(rows[i].ch+":"+i);
+    apply(set); rxRepaintCells(tbl); rxRepaintHeaders(tbl);
+  };
+  $("#rx-clear").onclick=()=>{
+    set.clear();
+    apply(set); rxRepaintCells(tbl); rxRepaintHeaders(tbl);
+  };
+}
+
+/* ── Monitor ─────────────────────────────────────────────────────────────
+   Surgical, like the meters: the instance panel + peer-row skeleton are built once
+   (and only rebuilt when the peer SET changes); every 2s tick writes changed values
+   into the existing cells. Full innerHTML rebuilds every tick destroyed any text the
+   user was selecting to copy, and churned layout for values that hadn't moved. */
+let monPeerSig=null;   // signature of the peer row set (names, in order)
+function audioRow(live, cfgName, rate){
+  if(live) return `${esc(live)}${rate? ' · '+rate/1000+' kHz':''}`;
+  if(cfgName) return `<span style="color:var(--warn,#b8860b)">${esc(cfgName)} (unavailable)</span>`;
+  return `<span class="muted">none</span>`;
+}
+function renderMonitor(){
+  const st=live.status, cfgc=live.config;
+  // ── Instance panel — build the dl skeleton once, update each value in place ──
+  const kv=$("#m-instance");
+  if(!kv.__built){
+    kv.__built=true;
+    kv.innerHTML =
+      `<dt>Name</dt><dd data-k="name"></dd>`+
+      `<dt>Listen port</dt><dd class="mono" data-k="port"></dd>`+
+      `<dt>Audio in</dt><dd class="mono" data-k="ain"></dd>`+
+      `<dt>Audio out</dt><dd class="mono" data-k="aout"></dd>`+
+      `<dt>Streams</dt><dd class="mono" data-k="streams"></dd>`+
+      `<dt>Bitrate</dt><dd class="mono" data-k="bitrate"></dd>`;
+  }
+  if(st){
+    const setDD=(k,html)=>{ const dd=kv.querySelector(`dd[data-k="${k}"]`);
+      if(dd && dd.__h!==html){ dd.__h=html; dd.innerHTML=html; } };
+    setDD("name", esc(st.name));
+    setDD("port", String(st.port));
+    if(cfgc){
+      setDD("ain",  audioRow(st.live_in_device,  cfgc.audio.input_device,  st.in_sample_rate));
+      setDD("aout", audioRow(st.live_out_device, cfgc.audio.output_device, st.out_sample_rate));
+      setDD("streams", `TX ${st.live_tx_streams??0} · RX ${st.live_rx_streams??0}`);
+      setDD("bitrate", cfgc.audio.bitrate_kbps?cfgc.audio.bitrate_kbps+" kbps":"Auto");
+    }
+  }
+  // ── Peer table ──
+  // Consistent ordering everywhere: config order (the order remotes were added),
+  // which is what Settings and the TX/RX peer buttons already use.
+  const order = cfgc? cfgc.remotes.map(r=>r.name) : [];
+  const peers = ((st&&st.peers)||[]).slice().sort((a,b)=>{
+    const ia=order.indexOf(a.name), ib=order.indexOf(b.name);
+    return (ia<0?1e9:ia)-(ib<0?1e9:ib);
+  });
+  $("#m-nopeers").style.display = peers.length? "none":"block";
+  $("#m-peers").style.display   = peers.length? "":"none";
+  const tb=$("#m-peers tbody");
+  // Structural signature: which peers, in what order. Rebuild the row skeleton only
+  // when this changes; the rows and `peers` then line up 1:1 by index (no fragile
+  // attribute-selector lookups with arbitrary peer names).
+  const sig=peers.map(p=>p.name).join("|");
+  if(sig!==monPeerSig){
+    monPeerSig=sig;
+    tb.innerHTML="";
+    for(let i=0;i<peers.length;i++){
+      const tr=document.createElement("tr");
+      for(let c=0;c<8;c++) tr.appendChild(document.createElement("td"));
+      tb.appendChild(tr);
+    }
+  }
+  // Value update — in place, every tick. Phase lock lives with the other per-remote
+  // audio settings (Settings → Remotes), not here — the monitor is a read-only view.
+  peers.forEach((p,i)=>{
+    const tr=tb.children[i]; if(!tr) return;
+    const c=tr.children;
+    const amber = p.state==="connected" && p.host_match===false;
+    const cls = amber? "warn" : (p.state==="connected"? "ok" : (p.state==="idle"? "" : "warn"));
+    setCell(c[0], "", `${esc(p.name)}<span class="cfg-rt mono muted">TX ${p.cfg_tx??0} · RX ${p.cfg_rx??0}</span>${p.sr_mismatch ? `<span class="sr-badge">44.1k</span>` : ""}${p.enc_active ? `<span class="enc-badge" title="Encrypted (key exchange complete)">&#128274;</span>` : ""}`);
+    setCell(c[1], "", `<span class="pill ${cls}">${esc(p.state)}</span>`);
+    setCell(c[2], "mono", `${(p.tx_mbps??0).toFixed(3)} Mbps`);
+    setCell(c[3], "mono", `${(p.rx_mbps??0).toFixed(3)} Mbps`);
+    setCell(c[4], "mono", `${(p.pct_lost??0).toFixed(2)}%`);
+    setCell(c[5], "mono", `${(p.jitter_ms??0).toFixed(2)} ms`);
+    if(p.state==="connected") setCell(c[6], "mono", `${(p.latency_ms??0).toFixed(1)} ms`);
+    else                      setCell(c[6], "mono muted", "-");
+    const b=bufCellParts(p); setCell(c[7], b.cls, b.html);
+  });
+}
+
+/* ── Settings ────────────────────────────────────────────────────────── */
+const BUFFER_PRESETS=[5,10,20,40,60,80,100,120,160,240,500,750,1000,1500,2000,3000,4000,5000];
+function cfg(){ return draft || live.config; }
+// Remotes whose receive-buffer control the user has touched since the last Save.
+// The buffer must apply on Save like every other setting, but Save diffs the draft
+// against the stored config — and after an auto-adapt the value you want (5) can equal
+// the value already stored (5) while the engine is running something else (10), so the
+// diff finds nothing and the control silently does nothing. Recording the touch makes
+// Save send it regardless of whether the stored value moved.
+const bufTouched = new Set();
+
+function markDirty(){
+  if(!draft && live.config){
+    draft=deep(live.config);
+    // The name each remote was loaded under, so Save can tell a renamed remote from a new
+    // one: the daemon finds a renamed remote's stored password by it.
+    for(const r of draft.remotes) r.orig_name=r.name;
+  }
+  $("#savebar").classList.add("show");
+}
+function clearDirty(){
+  draft=null;
+  $("#savebar").classList.remove("show");
+}
+
+function fillSelect(sel, items, current){
+  sel.innerHTML="";
+  let found=false;
+  for(const it of items){
+    const o=document.createElement("option"); o.value=it; o.textContent=it;
+    if(it===current){ o.selected=true; found=true; }
+    sel.appendChild(o);
+  }
+  if(!found && current){            // keep an unknown current value selectable
+    const o=document.createElement("option"); o.value=current; o.textContent=current; o.selected=true;
+    sel.appendChild(o);
+  }
+}
+function fillSelectLabelled(sel, values, labels, current){
+  sel.innerHTML="";
+  let found=false;
+  for(let i=0;i<values.length;i++){
+    const o=document.createElement("option");
+    o.value=values[i]; o.textContent=labels[i]||values[i];
+    if(values[i]===current){ o.selected=true; found=true; }
+    sel.appendChild(o);
+  }
+  if(!found && current){
+    const o=document.createElement("option"); o.value=current; o.textContent=current; o.selected=true;
+    sel.appendChild(o);
+  }
+}
+// Device dropdown with a "- none -" option and an "(unavailable)" entry for a
+// configured-but-absent device.
+// selected   = currently running device name ("" = nothing running)
+// configured = name stored in config ("" = deliberately none)
+// States:
+//   running                        -> that device selected
+//   not running, config names one  -> "DeviceName (unavailable)" selected (device lost,
+//                                     will auto-reactivate when it returns)
+//   not running, no config         -> "- none -" selected (deliberate)
+function fillSelectWithMissing(sel, items, selected, configured){
+  sel.innerHTML="";
+  const deviceAbsent = configured && !items.includes(configured);
+  // "- none -" is selected only when there is genuinely no configured device.
+  const noneSelected = !selected && !configured;
+  const none=document.createElement("option"); none.value=""; none.textContent="- none -";
+  if(noneSelected) none.selected=true;
+  sel.appendChild(none);
+  // Configured device absent from the current list. Show it as a selectable option marked
+  // "(unavailable)". (font-style is set as a best-effort hint, but most browsers — notably
+  // native macOS selects — ignore styling on <option>, so the "(unavailable)" text is the
+  // dependable signal.) Selected when it's the configured choice and nothing else is
+  // running (it was lost, not deliberately off).
+  if(deviceAbsent){
+    const o=document.createElement("option");
+    o.value=configured; o.textContent=configured+" (unavailable)";
+    o.style.fontStyle="italic"; o.style.color="var(--muted)";
+    if(selected===configured || !selected) o.selected=true;
+    sel.appendChild(o);
+  }
+  for(const it of items){
+    const o=document.createElement("option"); o.value=it; o.textContent=it;
+    if(it===selected) o.selected=true;
+    sel.appendChild(o);
+  }
+}
+// Fill a buffer <select>'s options for a given floor, preserving the current selection.
+// Records the floor on the node (data-floor) so updateBufferFloors() can tell when a
+// live incoming-frame or output-device change has moved it and refill in place — no
+// full-form rebuild.
+function fillBufferOptions(sel, current, floorMs){
+  const floor = floorMs || 40;          // 2× incoming frame; 40ms default until measured
+  // Snap a saved value below the floor up to the floor — the engine floors it anyway
+  // (a buffer below the floor has no effect), so we never show it.
+  let cur = current;
+  if(cur < floor) cur = floor;
+  const vals=[...BUFFER_PRESETS].filter(v=>v>=floor);
+  if(!vals.includes(cur)) vals.push(cur);
+  vals.sort((a,b)=>a-b);
+  sel.innerHTML="";
+  for(const v of vals){
+    const o=document.createElement("option"); o.value=v; o.textContent=v+" ms";
+    if(v===cur) o.selected=true;
+    sel.appendChild(o);
+  }
+  sel.dataset.floor=floor;
+}
+function bufferSelect(current, floorMs){
+  const s=document.createElement("select");
+  fillBufferOptions(s, current, floorMs);
+  return s;
+}
+// Surgically refresh each remote's buffer-select options when its floor (2× the live
+// incoming frame, the Sync 20ms minimum, or the devices' callback floor) changes, and its
+// frame-size options when the shortest allowed frame changes — in place, so it is safe
+// mid-edit and needs no full-form rebuild. Skips a select the user currently has
+// focused/open.
+function updateBufferFloors(){
+  if(activePage()!=="settings") return;
+  const c=cfg(); if(!c) return;
+  const host=$("#f-remotes"); if(!host) return;
+  c.remotes.forEach((r,idx)=>{
+    const sel=host.querySelector(`select[data-remote-idx="${idx}"]`);
+    if(sel && sel!==document.activeElement){
+      const floor=bufferFloorFor(r.name, !!r.phase_lock);
+      if(+sel.dataset.floor!==floor){
+        const cur=parseInt(sel.value,10)||effectiveBufferMs(r.name, r.receive_buffer_ms);
+        fillBufferOptions(sel, cur, floor);
+      }
+    }
+    const fsel=host.querySelector(`select[data-frame-idx="${idx}"]`);
+    if(fsel && fsel!==document.activeElement && +fsel.dataset.frameFloor!==shortestFrameMs()){
+      fillFrameOptions(fsel, parseFloat(fsel.value)||(r.frame_ms ?? 20), r.mode==="voice");
+    }
+  });
+}
+// The buffer target the ENGINE is actually running, which is not always what the config
+// says: §3.2's auto-adapt raises the setpoint while a sender's frame is too large for it
+// (2.5ms frames -> 5ms setpoint, 20ms -> 40ms), and the output device's period floor can
+// raise it too. The dropdown renders this live target, so what's shown is what's running
+// and picking a different value is a genuine change. Rendering the stored config value
+// instead would show 5ms while the engine ran 10ms, and re-picking 5ms would be a no-op:
+// the save diff compares against that same stored 5 and sees no change.
+function effectiveBufferMs(remoteName, configMs){
+  const peers = (live.status && live.status.peers) || [];
+  const p = peers.find(x=>x.name===remoteName);
+  return (p && typeof p.buf_target_ms==="number" && p.buf_target_ms>0)
+    ? Math.round(p.buf_target_ms) : (configMs ?? 120);
+}
+// Receive-buffer floor for a remote — the clamp rules the engine applies:
+//   • 2× the live incoming frame size (the ring is floored to 2×frame,
+//     CASCADE_AUDIO_RECEIVE_SPEC §4) — 40ms until a frame has been measured.
+//   • 20ms minimum when Sync (phase lock) is on (spec §4, the Sync-conditional
+//     clamp) — a request below 20ms is silently treated as 20ms.
+//   • The devices' callback floor (devicePeriodFloorMs), for every remote.
+// The dropdown offers only values at or above whichever floor is highest, so the
+// user can't pick a value the engine would just override.
+function bufferFloorFor(remoteName, syncOn){
+  const peers = (live.status && live.status.peers) || [];
+  const p = peers.find(x=>x.name===remoteName);
+  const inFrame = p && typeof p.in_frame_ms==="number" ? p.in_frame_ms : 0;
+  const frameFloor = inFrame>0 ? Math.round(inFrame*2) : 40;
+  return Math.max(frameFloor, syncOn ? 20 : 5, devicePeriodFloorMs());
+}
+// The shortest callback period both assigned audio devices can run, in frames (status
+// `shortest_period`). 0 when not known — always on macOS — which limits nothing.
+function devicePeriod(){
+  return (live.status && live.status.shortest_period) || 0;
+}
+// The receive-buffer floor that period sets, in ms — the engine's own rule
+// (channel_sync::period_floor_samples): twice the period, rounded up to the next buffer
+// level (2.5, 5 or 10 ms, then 20 ms steps). A 512-frame period floors at 40 ms.
+function devicePeriodFloorMs(){
+  const period=devicePeriod();
+  if(!(period>0)) return 0;
+  const need=2*period;
+  const samples = need<=120 ? 120 : need<=240 ? 240 : need<=480 ? 480 : Math.ceil(need/960)*960;
+  return samples/48;
+}
+// The shortest outgoing frame size that period allows, in ms — the engine's own rule
+// (audio::shortest_frame_for): the smallest frame at least as long as the period, so a
+// callback never carries two frames; 20 ms is always allowed. A 512-frame period allows
+// 20 ms only.
+function shortestFrameMs(){
+  const period=devicePeriod();
+  const samples=[120,240,480].find(f=>f>=period) || 960;
+  return samples/48;
+}
+// Fill a frame-size <select>, leaving out sizes below the shortest allowed frame. A saved
+// value below it shows as the shortest allowed — what the engine sends it at. Records the
+// floor on the node (data-frame-floor) so updateBufferFloors() refills only when it moves.
+// Frame sizes offered for a remote: every size at or above the device floor, or 20 ms
+// alone when the remote is in Voice mode — Voice exists only at 20 ms, so the other sizes
+// are not offered at all while it is selected.
+function fillFrameOptions(sel, currentMs, voice){
+  const floor=shortestFrameMs();
+  const cur=voice ? 20 : Math.max(currentMs, floor);
+  sel.innerHTML="";
+  for(const v of ["2.5","5","10","20"]){
+    if(parseFloat(v) < floor) continue;
+    if(voice && v!=="20") continue;
+    const o=document.createElement("option"); o.value=v; o.textContent=v+" ms";
+    if(parseFloat(v)===cur) o.selected=true;
+    sel.appendChild(o);
+  }
+  sel.dataset.frameFloor=floor;
+}
+
+function renderSettings(){
+  const c=cfg(); if(!c) return;
+  // Identity & network
+  $("#f-name").value=c.general.name;
+  $("#f-port").value=c.general.port;
+  $("#f-apiport").value=c.api ? c.api.port : 8080;
+  // Interfaces now return {value, label} objects so names are stored without IP
+  // The "any" interface keeps its lowercase value (config/wire) but displays as "Any".
+  const ifaceValues = ["any", ...(live.interfaces||[]).map(i=>i.value||i)];
+  const ifaceLabels = ["Any", ...(live.interfaces||[]).map(i=>i.label||i.value||i)];
+  fillSelectLabelled($("#f-iface"), ifaceValues, ifaceLabels, c.general.network_interface);
+  // Audio — show the actual running device (blank if none running/found).
+  // If the configured device is absent from the current list, it is added as a
+  // "DeviceName (unavailable)" option so the user can see it's configured but absent.
+  const liveInDev  = (live.status && live.status.live_in_device)  || "";
+  const liveOutDev = (live.status && live.status.live_out_device) || "";
+  const cfgInDev  = c.audio.input_device  || "";
+  const cfgOutDev = c.audio.output_device || "";
+  const inDevs  = live.devices.inputs  || [];
+  const outDevs = live.devices.outputs || [];
+  fillSelectWithMissing($("#f-indev"),  inDevs,  liveInDev,  cfgInDev);
+  fillSelectWithMissing($("#f-outdev"), outDevs, liveOutDev, cfgOutDev);
+  $("#f-bitrate").value= String(c.audio.bitrate_kbps);
+  // Exclusive output (hog mode). Applies LIVE via its own hot command (not the save
+  // draft), so the checkbox reflects the request while the caption reports the ACTUAL
+  // held state from /api/status — a claim can fail if another app owns the device.
+  syncExclOut();
+  // Remotes
+  const host=$("#f-remotes"); host.innerHTML="";
+  $("#f-noremotes").style.display = c.remotes.length? "none":"block";
+  c.remotes.forEach((r,idx)=>{
+    const row=document.createElement("div"); row.className="remote"+(r.enabled?"":" disabled");
+    const mk=(lbl,el)=>{ const f=document.createElement("div"); f.className="field";
+      const l=document.createElement("label"); l.textContent=lbl; f.appendChild(l); f.appendChild(el); return f; };
+    const iName=document.createElement("input"); iName.value=r.name;
+    const iHost=document.createElement("input"); iHost.value=r.host;
+    const iPort=document.createElement("input"); iPort.type="number"; iPort.value=r.port;
+    // The daemon never sends passwords back. The field starts empty — with a placeholder
+    // when one is stored — and a password goes up on Save only once typed (empty clears it).
+    const iPass=document.createElement("input"); iPass.type="password"; iPass.autocomplete="new-password";
+    iPass.value = r.password_edited ? (r.password||"") : "";
+    iPass.placeholder = r.password_set ? "••••••••" : "";
+    const iBuf =bufferSelect(effectiveBufferMs(r.name, r.receive_buffer_ms), bufferFloorFor(r.name, !!r.phase_lock));
+    iBuf.dataset.remoteIdx=idx;   // lets updateBufferFloors() find this select in place
+    // Use oninput (fires per keystroke), not onchange (fires only on blur): the dirty
+    // flag must be set the moment the user types, because the 5s pollSlow re-render is
+    // guarded on `draft`/focus and would otherwise rebuild the form from cfg() and
+    // clobber half-typed text. Committing on input also means a Save immediately after
+    // typing (without tabbing out) captures the latest value.
+    iName.oninput=()=>{ markDirty(); cfg().remotes[idx].name=iName.value; };
+    iName.onchange=()=>{ cfg().remotes[idx].name=iName.value.trim(); };
+    iHost.oninput=()=>{ markDirty(); cfg().remotes[idx].host=iHost.value; };
+    iHost.onchange=()=>{ cfg().remotes[idx].host=iHost.value.trim(); };
+    iPort.min=0; iPort.max=65535;
+    iPort.oninput=()=>{ markDirty(); cfg().remotes[idx].port=clampPort(iPort.value,20102); };
+    iPort.onchange=()=>{ iPort.value=cfg().remotes[idx].port; };  // reflect the clamp
+    iPass.oninput=()=>{ markDirty(); const d=cfg().remotes[idx]; d.password=iPass.value; d.password_edited=true; };
+    // Sent immediately rather than deferred to the save diff. The diff compares the draft
+    // Draft only — nothing is sent here. A buffer change tears down and refills the
+    // receive path, so applying it per dropdown interaction would re-buffer while the
+    // user is still choosing. `bufTouched` carries the intent through to Save.
+    iBuf.onchange =()=>{
+      const ms=parseInt(iBuf.value,10)||120;
+      markDirty(); cfg().remotes[idx].receive_buffer_ms=ms;
+      bufTouched.add(r.name);
+    };
+
+    // ── Row 1: identity ──
+    const r1=document.createElement("div"); r1.className="remote-row";
+    r1.appendChild(mk("Name",iName));
+    r1.appendChild(mk("Host",iHost));
+    r1.appendChild(mk("Port",iPort));
+    r1.appendChild(mk("Password",iPass));
+    const bEn=document.createElement("button");
+    bEn.className="btn tgl"+(r.enabled?" on":""); bEn.textContent=r.enabled?"Enabled":"Disabled";
+    bEn.onclick=()=>{ markDirty(); cfg().remotes[idx].enabled=!cfg().remotes[idx].enabled; renderSettings(); };
+    const bRm=document.createElement("button"); bRm.className="btn danger"; bRm.textContent="Remove";
+    bRm.onclick=()=>{ markDirty(); cfg().remotes.splice(idx,1); renderSettings(); };
+    r1.appendChild(bEn); r1.appendChild(bRm);
+
+    // ── Row 2: per-remote audio ──
+    // Mode and frame size are per-remote (CASCADE_AUDIO_SEND_SPEC §4.1): one
+    // instance can feed remotes at different frame sizes/modes at once. Note the
+    // frame size is sent exactly as chosen, whatever other remotes sharing a source
+    // channel use (§4.1).
+    const r2=document.createElement("div"); r2.className="remote-row audio";
+    const iMode=document.createElement("select");
+    for(const [v,t] of [["voice","Voice"],["audio","Audio"]]){
+      const o=document.createElement("option"); o.value=v; o.textContent=t; iMode.appendChild(o);
+    }
+    iMode.value = r.mode || "audio";
+    const iFrame=document.createElement("select");
+    fillFrameOptions(iFrame, r.frame_ms ?? 20, iMode.value==="voice");
+    iFrame.dataset.frameIdx=idx;   // lets updateBufferFloors() find this select in place
+    // Voice mode exists only at 20 ms (CASCADE_AUDIO_SEND_SPEC §6): selecting it sets the
+    // frame size to 20 ms and leaves 20 ms as the only size offered; switching back to
+    // Audio offers every size again, keeping 20 ms selected. The daemon applies the same
+    // clamp to any Voice setting that reaches it with a shorter frame.
+    const applyVoiceLock=()=>{
+      const voice = iMode.value==="voice";
+      if(voice && cfg().remotes[idx].frame_ms!==20) cfg().remotes[idx].frame_ms=20;
+      fillFrameOptions(iFrame, cfg().remotes[idx].frame_ms ?? 20, voice);
+    };
+    iMode.onchange=()=>{ markDirty(); cfg().remotes[idx].mode=iMode.value; applyVoiceLock(); };
+    iFrame.onchange=()=>{ markDirty(); cfg().remotes[idx].frame_ms=parseFloat(iFrame.value)||20; };
+    applyVoiceLock();
+    r2.appendChild(mk("Mode",iMode));
+    r2.appendChild(mk("Frame size",iFrame));
+    r2.appendChild(mk("Receive buffer",iBuf));
+    // Empty cell under Password, so Phase lock / Encryption land under Enabled /
+    // Remove and the whole grid stays column-aligned with the identity row.
+    const gap=document.createElement("div"); gap.className="gap"; r2.appendChild(gap);
+    const bPl=document.createElement("button");
+    bPl.className="btn tgl feat"+(r.phase_lock?" on":""); bPl.textContent="Phase lock";
+    bPl.title="Sample-lock this remote's channels to each other (resampler-based sync)";
+    bPl.onclick=()=>{ markDirty(); cfg().remotes[idx].phase_lock=!cfg().remotes[idx].phase_lock;
+                      renderSettings(); };
+    const bEnc=document.createElement("button");
+    bEnc.className="btn tgl feat"+(r.encryption?" on":""); bEnc.textContent="Encryption";
+    bEnc.title="End-to-end audio encryption (X25519 + AES-256-GCM). When on, audio "+
+               "to and from this remote is encrypted once the key exchange completes.";
+    bEnc.onclick=()=>{ markDirty(); cfg().remotes[idx].encryption=!cfg().remotes[idx].encryption;
+                       renderSettings(); };
+    r2.appendChild(bPl); r2.appendChild(bEnc);
+
+    row.appendChild(r1); row.appendChild(r2);
+    host.appendChild(row);
+  });
+  $("#savebar").classList.toggle("show", !!draft);
+}
+
+/* Field bindings (global settings) */
+/* Field bindings (global settings). Text inputs use oninput so the dirty flag is set
+   per-keystroke (see the remote-field note above — onchange fires only on blur, after
+   which the 5s pollSlow could rebuild the form and clobber half-typed text). Selects
+   commit on change, which is fine. */
+$("#f-name").oninput    =()=>{ markDirty(); cfg().general.name=$("#f-name").value; };
+$("#f-name").onchange   =()=>{ cfg().general.name=$("#f-name").value.trim(); };
+// A valid UDP/TCP port is 0-65535 (0 = "any"). parseInt alone would let a
+// hand-typed 70000 or a negative through; clamp so the stored value — and what
+// the backend receives — is always in range. onchange re-reads the field so the
+// user sees the clamped value after leaving it.
+function clampPort(v, dflt){
+  const n=parseInt(v,10);
+  if(!Number.isFinite(n)) return dflt;
+  return Math.min(65535, Math.max(0, n));
+}
+$("#f-port").min=0; $("#f-port").max=65535;
+$("#f-apiport").min=0; $("#f-apiport").max=65535;
+$("#f-port").oninput    =()=>{ markDirty(); cfg().general.port=clampPort($("#f-port").value,20102); };
+$("#f-port").onchange   =()=>{ $("#f-port").value=cfg().general.port; };
+$("#f-apiport").oninput =()=>{ markDirty(); if(!cfg().api) cfg().api={}; cfg().api.port=clampPort($("#f-apiport").value,8080); };
+$("#f-apiport").onchange=()=>{ $("#f-apiport").value=(cfg().api&&cfg().api.port)||8080; };
+$("#f-iface").onchange  =()=>{ markDirty(); cfg().general.network_interface=$("#f-iface").value; };
+$("#f-indev").onchange  =()=>{ markDirty(); cfg().audio.input_device=$("#f-indev").value; };
+$("#f-outdev").onchange =()=>{ markDirty(); cfg().audio.output_device=$("#f-outdev").value; };
+$("#f-bitrate").onchange=()=>{ markDirty(); cfg().audio.bitrate_kbps=parseInt($("#f-bitrate").value,10)||0; };
+
+/* Exclusive output (CoreAudio hog mode). Goes through the save gate like every other
+   setting: the button edits the draft, Save applies it (doSave sends the hot command, same
+   pattern as Phase lock / Encryption). */
+function syncExclOut(){
+  const b=$("#f-exclout"); if(!b) return;
+  const c=cfg(); if(!c||!c.audio) return;
+  // Where exclusivity is INHERENT (Windows and Linux: WASAPI exclusive mode and ALSA hw:
+  // devices are exclusive by opening them), this is a state rather than a choice — so it reads
+  // as permanently on and does not respond to clicks.
+  if(live.status && live.status.exclusive_output_inherent){
+    b.classList.add("on");
+    b.classList.add("locked");
+    b.title="Exclusive access is inherent on this platform — the audio device is opened "
+           +"exclusively and cannot be shared with other applications.";
+    return;
+  }
+  b.classList.remove("locked");
+  b.classList.toggle("on", !!c.audio.exclusive_output);
+}
+$("#f-exclout").onclick=()=>{
+  if(live.status && live.status.exclusive_output_inherent) return;   // state, not a control
+  markDirty();
+  cfg().audio.exclusive_output = !cfg().audio.exclusive_output;
+  syncExclOut();
+};
+
+$("#f-addremote").onclick=()=>{
+  markDirty();
+  cfg().remotes.push({name:"New Remote",host:"",port:20102,enabled:true,
+    phase_lock:false,password:"",password_edited:true,receive_buffer_ms:120,frame_ms:20.0,
+    mode:"audio",encryption:false});
+  renderSettings();
+};
+
+/* Save / discard */
+$("#discard").onclick=()=>{ clearDirty(); renderSettings(); };
+$("#save").onclick=()=>{
+  if(!draft || !live.config) return;
+  // NOTHING RESTARTS. Every setting applies in place: the audio socket rebinds
+  // (port and interface), a rename re-derives each peer's wire token, devices rebuild
+  // on the hot path, and the HTTP listener rebinds itself.
+  doSave();
+};
+
+function doSave(){
+  if(!draft) return;
+  // Hot-apply global encoding changes alongside the persist.
+  if(live.config){
+    if(draft.audio.bitrate_kbps!==live.config.audio.bitrate_kbps)
+      send({type:"set_bitrate", kbps:draft.audio.bitrate_kbps});
+    // Exclusive output (hog mode) applies hot on the backend, but is gated on Save like
+    // every other setting. The backend reports the real outcome via notice/audio_error —
+    // the OS can refuse the claim — and corrects the persisted value if it fails.
+    if(!!draft.audio.exclusive_output !== !!live.config.audio.exclusive_output)
+      send({type:"set_exclusive_output", on: !!draft.audio.exclusive_output});
+    // Per-remote hot-applies: buffer, frame size, mode, phase lock and encryption, all
+    // live (no restart).
+    const oldR={}; for(const r of (live.config.remotes||[])) oldR[r.name]=r;
+    for(const r of (draft.remotes||[])){
+      const o=oldR[r.name]; if(!o) continue;   // new remotes go via AddRemote
+      // Touched-or-changed: see `bufTouched`. Untouched remotes are never re-buffered
+      // by an unrelated Save.
+      if(r.receive_buffer_ms!==o.receive_buffer_ms || bufTouched.has(r.name))
+        send({type:"set_buffer", peer:r.name, ms:r.receive_buffer_ms});
+      if(r.frame_ms!==o.frame_ms)
+        send({type:"set_remote_frame_size", peer:r.name, ms:r.frame_ms});
+      if((r.mode||"audio")!==(o.mode||"audio"))
+        send({type:"set_remote_mode", peer:r.name, mode:r.mode||"audio"});
+      if(!!r.phase_lock!==!!o.phase_lock)
+        send({type:"phase", peer:r.name, enabled:!!r.phase_lock});
+      if(!!r.encryption!==!!o.encryption)
+        send({type:"set_encryption", peer:r.name, on:!!r.encryption});
+    }
+    bufTouched.clear();
+  }
+  // Strip routing matrices — owned by the routing pages; backend preserves them. A password
+  // goes up only when typed; without one the daemon keeps the stored password.
+  const payload=deep(draft);
+  for(const r of payload.remotes){
+    delete r.send_matrix; delete r.receive_matrix;
+    if(!r.password_edited) delete r.password;
+    delete r.password_edited; delete r.password_set;
+  }
+  if(!send({type:"save_config", config:payload})){
+    banner("Not connected - change not saved.", true); return;
+  }
+  banner("Saving...");
+}
+async function onConfigSaved(ok){
+  if(ok){
+    clearDirty();
+    banner("Saved.", false, 2000);
+    // The backend applies a hot device change asynchronously (rebuild + ~20ms settle).
+    // Wait briefly so the new live_in_device/live_out_device is published, then refresh
+    // status FIRST (dropdown reads it) followed by config/device lists. Without this the
+    // dropdown shows the previous device until the next 2s pollFast tick.
+    await new Promise(r=>setTimeout(r, 150));
+    try{ live.status = await jget("/api/status"); }catch(e){}
+    await pollSlow();
+  } else {
+    banner("Save failed.", true);
+  }
+}
+function banner(msg, isErr, opt){
+  const b=$("#s-banner");
+  // Any plain banner replaces whatever was showing — so neither the sr banner nor a peer's
+  // resolution error is the active one any more. Their callers re-set the flag immediately
+  // after calling banner().
+  srBannerActive=false;
+  peerErrBannerPeer=null;
+  b.textContent=msg;
+  b.style.borderBottomColor=isErr? "var(--bad)":"var(--line)";
+  b.style.color=isErr? "var(--bad)":"var(--ink)";
+  b.classList.add("show");
+  // opt: auto-hide after that many ms.
+  if(typeof opt==="number" && opt>0) setTimeout(()=>b.classList.remove("show"), opt);
+}
+// Show the 44.1k sample-rate warning in the shared banner and mark it active so pollFast
+// can auto-dismiss it when the condition clears. Wording: state the fact + consequence,
+// no instruction — Cascade is 48k-only by design.
+function srBanner(peer){
+  banner(`Remote '${peer}': incoming 44.1kHz - audio dropped (48kHz only)`, true);
+  srBannerActive=true;
+}
+
+/* ── Render dispatcher ───────────────────────────────────────────────── */
+function settingsFieldFocused(){
+  const ae=document.activeElement;
+  return activePage()==="settings" && ae
+    && (ae.tagName==="INPUT"||ae.tagName==="SELECT")
+    && ae.closest && !!ae.closest("#p-settings");
+}
+function render(){
+  // A matrix label edit in progress must never be destroyed by a poll/push
+  // re-render — skip until the editor closes (commit/cancel restores rendering).
+  const ae=document.activeElement;
+  if(ae && ae.tagName==="INPUT" && ae.closest && ae.closest("table.mx")) return;
+  // Never rebuild the settings form while the user is actively editing a field
+  // (has focus in an input or open select). This must NOT depend on `draft`: the user
+  // can click into a field — especially a freshly-saved remote, where draft is null —
+  // and a rebuild would steal focus before they type a character. Mere presence on the
+  // page is not enough to block (that would freeze device/interface list updates); we
+  // require actual focus inside the settings panel.
+  if(activePage()==="settings"
+     && ae && (ae.tagName==="INPUT"||ae.tagName==="SELECT")
+     && ae.closest && ae.closest("#p-settings")) return;
+  renderTopbar();
+  switch(activePage()){
+    case "monitor":  renderMonitor();  break;
+    case "tx":       renderTX();       break;
+    case "rx":       renderRX();       break;
+    case "settings": renderSettings(); break;
+  }
+}
+</script>
+</body>
+</html>

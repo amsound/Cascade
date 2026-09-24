@@ -1,0 +1,34 @@
+# ── CPU targeting, per target ────────────────────────────────────────────────
+# target-cpu=native tells LLVM to use the full ISA of the BUILD machine, so it is only
+# ever correct for a native build. Applied globally it would leak into every cross target,
+# where it is either ignored with a warning or — worse — wrong.
+#
+# Distribution targets get a conservative baseline instead. The DSP still vectorises;
+# it just does not assume an ISA the destination may not have. Raise these deliberately
+# if you know what you are shipping to.
+#
+# These are the only place the baselines live. Cargo takes its extra rustc flags from
+# exactly one source, so a build that sets RUSTFLAGS would use that INSTEAD of everything
+# here — which is why cross/build.sh passes its sysroot library path in a generated config
+# file (array values from config files are joined) rather than in RUSTFLAGS.
+
+# Apple silicon Macs.
+[target.aarch64-apple-darwin]
+# apple-m1, not native: `native` on an M4 build host enables bf16/i8mm, which no M1
+# has, so a bundle built here could emit instructions that fault on an older Mac.
+# Every other target already pins a portable baseline; this makes arm64 macOS match.
+rustflags = ["-C", "target-cpu=apple-m1"]
+
+# Intel Macs: every supported model is at least Nehalem, so v2 (SSE4.2/POPCNT) is safe.
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "target-cpu=x86-64-v2"]
+
+# Vanilla x86_64 Linux. v2 covers anything from roughly 2009 onward. x86-64-v3 (AVX2)
+# is a reasonable upgrade for known-modern hardware and widens the SIMD in the resampler.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "target-cpu=x86-64-v2"]
+
+# aarch64 Linux (Raspberry Pi and similar). Left at the armv8-a baseline deliberately:
+# naming a specific core (cortex-a72 for a Pi 4, cortex-a76 for a Pi 5) would exclude
+# the others, and NEON vectorisation is available at baseline anyway.
+[target.aarch64-unknown-linux-gnu]

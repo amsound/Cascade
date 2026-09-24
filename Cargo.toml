@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "cascade-daemon",
+    "cascade-relay",
+]
+resolver = "2"
+
+[patch.crates-io]
+# Force libopus 1.6.1 everywhere: see opus-1.6.1/README.md
+audiopus_sys = { path = "opus-1.6.1" }

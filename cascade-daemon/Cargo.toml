@@ -1,0 +1,93 @@
+[package]
+name = "cascade-daemon"
+version = "0.1.0"
+edition = "2021"
+description = "Cascade audio-over-IP daemon"
+default-run = "cascade"
+
+[[bin]]
+name = "cascade"
+path = "src/main.rs"
+
+[dependencies]
+tokio          = { version = "1", features = ["full"] }
+opus           = "0.3"
+axum           = { version = "0.7", features = ["ws"] }
+futures-util   = "0.3"
+tower-http     = { version = "0.5", features = ["fs", "cors"] }
+serde          = { version = "1", features = ["derive"] }
+serde_json     = "1"
+toml           = "0.8"
+hex            = "0.4"
+md5            = "0.7"
+rand           = "0.8"
+bytes          = "1"
+parking_lot    = "0.12"
+arc-swap       = "1"
+crossbeam-channel = "0.5"
+tracing        = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow         = "1"
+thiserror      = "1"
+clap           = { version = "4", features = ["derive"] }
+# libc: the 10 kHz poke clock (clock_gettime) and interface enumeration (getifaddrs on
+# macOS, netlink on Linux).
+libc           = "0.2"
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+blake2 = "0.10"
+aes-gcm = "0.10"
+portable-atomic = { version = "1.15.0", features = ["require-cas"] }
+
+# ── Windows WASAPI backend ────────────────────────────────────────────────────
+#
+# Exclusive mode only. `autoconvert` exists solely on WASAPI's SHARED modes, so exclusive
+# enforces the no-resampling rule by type rather than by a flag. 0.24 is the floor: device
+# change notification arrived there. `windows` supplies MMCSS, which wasapi does not wrap.
+[target.'cfg(target_os = "windows")'.dependencies]
+wasapi         = "0.24"
+windows        = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_System_Threading",            # MMCSS for the audio I/O thread
+    "Win32_System_Performance",          # QueryPerformanceCounter — the latency clock
+    "Win32_NetworkManagement_IpHelper",  # GetAdaptersAddresses, NotifyAddrChange
+    "Win32_System_IO",                   # OVERLAPPED, which NotifyAddrChange's signature names
+    "Win32_NetworkManagement_Ndis",      # IfOperStatusUp
+    "Win32_Networking_WinSock",          # AF_INET, SOCKADDR_IN
+    "Win32_UI_WindowsAndMessaging",      # the hidden window, its pump, menus, MessageBox
+    "Win32_UI_Shell",                    # Shell_NotifyIcon (tray), ShellExecute (open URL)
+    "Win32_System_LibraryLoader",        # GetModuleHandleW, for the window class + icon
+    "Win32_Graphics_Gdi",                # WNDCLASSW/RegisterClassW live behind this
+] }
+
+# ── Linux ALSA backend ────────────────────────────────────────────────────────
+#
+# Driven directly, the same way CoreAudio is on macOS: rate strictness has to be an
+# assertion, the period COUNT has to be ours to set, and the I/O loop has to live
+# somewhere.
+[target.'cfg(target_os = "linux")'.dependencies]
+# alsa-sys arrives transitively; nothing here declares it directly. 0.12 is the floor for
+# two reasons: `io_i32_s24`, which the stream's single IO handle needs for a 24-in-32 device
+# (that format is S24_LE, and `io_i32` checks for S32_LE and refuses it), and the PCM fix
+# for the timespec/time64 mismatch.
+alsa           = "0.12"
+
+# ── macOS CoreAudio backend ───────────────────────────────────────────────────
+#
+# Driven directly. coreaudio-rs supplies the AudioUnit lifecycle and the `macos_helpers` device layer.
+# It is built on the objc2 crates rather than coreaudio-sys, so the HAL calls it does not
+# wrap — device UID, latency/safety offset, the kAudioHardwarePropertyDevices listener —
+# come from objc2-core-audio directly, with objc2-core-foundation for the CFString
+# conversions those properties return. Same family and versions coreaudio-rs already
+# resolves, so there is no second set of bindings.
+[target.'cfg(target_os = "macos")'.dependencies]
+coreaudio-rs           = "0.14.2"
+objc2-core-audio       = "0.3"
+objc2-core-foundation  = "0.3"
+objc2-audio-toolbox    = "0.3"
+objc2-core-audio-types = "0.3"
+# The menu-bar item (NSStatusItem, NSMenu, NSAlert, NSWorkspace). Same objc2 generation
+# (0.6) the core-audio crates above already pull, so this adds a crate, not a second
+# runtime. AppKit is UI only — nothing in the audio path touches it.
+objc2-app-kit          = "0.3"
+objc2-foundation       = "0.3"
+objc2                  = "0.6"

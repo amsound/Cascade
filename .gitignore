@@ -1,0 +1,25 @@
+# Build output
+/target/
+/dist/
+
+# Cross-build sysroot: Debian binaries, reproducible via cross/fetch-sysroot.sh
+cross/sysroot/
+
+# Local settings and logs — each machine's own, never shared
+/cascade.toml
+*.log
+*.log.1
+
+# Not published
+/docs/
+/archive/
+/zita-compare
+
+# Editor and OS clutter
+.DS_Store
+/.claude/
+/.vscode/
+
+# Stray backups of edited files
+*.bak
+*.bak-*

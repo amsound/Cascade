@@ -1,0 +1,54 @@
+# Cascade settings — annotated example.
+#
+# Cascade writes and maintains this file itself: every change made in the web UI
+# (http://<host>:8080) is saved here. Editing it by hand is optional. To start from this
+# example, copy it to cascade.toml and run:  cascade --config cascade.toml
+#
+# Every key has a default, so any of them can be left out.
+
+[general]
+name = "Cascade"             # this instance's stream name, as peers see it; part of the
+                             # identity token (see [[remotes]] password)
+port = 20102                 # UDP port for all traffic to and from remotes
+network_interface = "any"    # "any" (all interfaces), or one interface by name, e.g. "en0"
+
+[audio]
+input_device  = ""           # exact device name, or "" for no input (receive-only)
+output_device = ""           # exact device name, or "" for no output (send-only)
+# input_device_uid  = ""     # learned automatically: a stable device identifier, matched
+# output_device_uid = ""     # before the name so a renamed or re-plugged device is found
+exclusive_output = false     # macOS: take exclusive (hog) access to the output device
+bitrate_kbps = 0             # Opus bitrate per channel in kbps; 0 = automatic
+channel_labels = []          # names for outgoing channels, index 0 = channel 1;
+                             # missing entries show as "Ch N"
+
+[tone]
+level_db = -18.0             # line-up tone level in dBFS (-60 to 0). There is no on/off
+                             # switch: tone is sent wherever it is routed to a remote
+
+[api]
+bind = "0.0.0.0"             # web UI address: "0.0.0.0" = all interfaces,
+                             # "127.0.0.1" = this machine only. The UI has no login.
+port = 8080
+
+# One [[remotes]] block per peer.
+[[remotes]]
+name = "Studio A"            # the remote's stream name — must match its [general] name
+host = "192.168.1.10"        # IPv4 address or hostname; "" = accept it from wherever it
+                             # connects from (it must connect to us)
+port = 20102
+enabled = true
+password = ""                # shared with the remote; both ends must use the same value
+                             # (identity token = MD5(UPPER(name) + UPPER(password)))
+encryption = false           # AES-256-GCM on audio; both ends must agree
+phase_lock = false           # "Sync": keep this remote's channels sample-locked
+receive_buffer_ms = 120      # playout buffer for audio from this remote, 5-10000 ms
+                             # (at least 20 with Sync on)
+mode = "audio"               # "audio" = music and programme; "voice" = speech, with
+                             # in-band FEC. Voice runs only at a 20 ms frame
+frame_ms = 20                # frame size for audio sent to this remote: 2.5, 5, 10 or 20
+
+# Routing, written by the web UI's routing pages. Comma-separated "row:col:1" entries,
+# 0-based. Nothing is sent or played for a remote until it is routed.
+# send_matrix    = "0:0:1,1:1:1"   # local input channel -> channel slot sent to the remote
+# receive_matrix = "0:0:1,1:1:1"   # channel slot received -> local output channel
